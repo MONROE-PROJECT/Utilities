@@ -1,0 +1,7 @@
+Package: tuptime 
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Description: tuptime uptime statistics tracker from https://github.com/rfrail3/tuptime

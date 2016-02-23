@@ -1,0 +1,9 @@
+Package: xtables-addons-cgroup
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Installed-Size: 17
+Depends: iptables, libnftnl4
+Maintainer: support@celerway.com
+Description: IPtables cgroup/net_cls module from git.netfilter.org/iptables/

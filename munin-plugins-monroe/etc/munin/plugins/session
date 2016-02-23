@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title Session";
+  echo "id.label boot number";
+  echo "start.label boot time";
+  echo "current.label uptime";
+  echo "total.label system life";
+  echo "percent.label percent uptime";
+  echo "current.draw AREA"
+else
+  UPTIME=$(cat /proc/uptime | cut -d. -f1);
+  START=$(date +%s --date "-$UPTIME sec");
+  SESSION=$(tuptime -s| head -n1  | sed -e 's/.*\t\(.*\) since.*/\1/g');
+  SYSLIFE=$(tuptime -s| grep life | cut -f3);
+  PERCENT=$(tuptime -s| grep 'System uptime'|sed -e 's/.*\t\(.*\) %.*/\1/g')
+  echo "id.value $SESSION";
+  echo "start.value $START";
+  echo "total.value $SYSLIFE";
+  echo "current.value $UPTIME";
+  echo "percent.value $PERCENT";
+fi

@@ -1,0 +1,5 @@
+# /etc/cron.d/tuptime: crontab entry for tuptime update.
+# NOTE: Decrease the execution time for increased accuracy.
+
+*/5 * * * *   root    if [ -x /usr/bin/tuptime ]; then /usr/bin/tuptime -x > /dev/null; fi
+

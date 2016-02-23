@@ -1,0 +1,89 @@
+#!/bin/bash
+
+. /etc/default/metadata-timeloop
+
+RSYNC_REMOTE_PREFIX="$RSYNC_USER@$RSYNC_SERVER:$RSYNC_TARGET"
+
+echo "Remote: $RSYNC_REMOTE_PREFIX"
+
+CWY_NODEID=$(cat /etc/nodeid)
+CWY_VER=1
+
+while true
+do
+    # This $VAR:-text is som fancy Bash parameter expansion. It means that if
+    # variable is not set, then "return" the string. See:
+    # http://www.gnu.org/software/bash/manual/bash.html#Shell-Parameter-Expansion
+    if [ "${CWY_VER:-error_1}" == "error_1" ]
+    then
+        echo "CWY_VER must be set"
+        logger -t metadata_exporter "CWY_VER must be set"
+        exit 1
+    fi
+
+    if [ "${CWY_NODEID:-error_2}" == "error_2" ]
+    then
+        echo "CWY_NODEID must be set";
+        logger -t metadata_exporter "CWY_NODEID must be set";
+        exit 2;
+    fi
+    
+    re='^[0-9]+$'
+    if ! [[ $CWY_NODEID =~ $re ]]
+    then
+        echo "CWY_NODEID must be an integer"
+        logger -t metadata_exporter "CWY_NODEID must be an integer"
+        exit 3
+    fi
+
+    # rsync deletes files as they are copied (batch), so we don't risk copying (all)
+    # the same data multiple times if a copy fails
+    # use -t to preserve timestamp, so that we can sort files correctly on server.
+    # This is a good enough way to ensure that we get queries in order (we need to do
+    # INSERT before UPDATE). We might get problems if the same router reboots many
+    # times and we dont have a proper clock, but we will be saved by update
+    BEFORE_TIME=$(date '+%s')
+    $RSYNC_PATH -t --remove-source-files --stats --timeout=30 -e "ssh -i \"${META_KEY_PATH}\" -p $RSYNC_DST_PORT -o StrictHostKeychecking=no -o ConnectTimeout=30" $RSYNC_LOCAL \
+        $RSYNC_REMOTE_PREFIX/$CWY_VER/$CWY_NODEID/
+    RETVAL=$?
+    AFTER_TIME=$(date '+%s')
+
+    if [ $RETVAL -ne 0 ]
+    then
+        logger -t metadata_exporter "Copying metadata failed with code $RETVAL"
+        OTHERFILES=$(ls -dthr $RSYNC_LOCAL_ 2>/dev/null|tail -n +2)
+        if [ ! -z "$OTHERFILES" ]
+        then
+            FIRSTFILE=$(ls -dthr $RSYNC_LOCAL_ 2>/dev/null |head -n 1)
+            FILECOUNT=$(ls $OTHERFILES|wc -l)
+            cat $OTHERFILES >> $FIRSTFILE &&
+            rm $OTHERFILES                &&  #only if successful
+            logger -t metadata_exporter "Appended $FILECOUNT metadata files to $FIRSTFILE"
+        fi
+    else
+        # logger -t metadata_exporter "Done copying files to server"
+        date +%s > /tmp/last_meta_export
+    fi
+
+    # Time can move backwards. Not very likely, but handle it in case of failure
+    # + ntp happening at the same time
+    if [ $AFTER_TIME -lt $BEFORE_TIME ]
+    then
+        SLEEP_TIME=$INTVL
+    else
+        TDIFF=$(( $AFTER_TIME - $BEFORE_TIME ))
+
+        # Make sure we don't end up in infinite loop by always sleeping a minimum
+        # amount of time
+        if [ $TDIFF -ge $INTVL ]
+        then
+            SLEEP_TIME=1
+        else
+            SLEEP_TIME=$(( $INTVL - $TDIFF ))
+        fi
+    fi
+
+    sleep $SLEEP_TIME
+
+done
+exit 0

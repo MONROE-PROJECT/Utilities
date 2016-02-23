@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title Core services";
+  echo "modems.label Modems";
+  echo "modems.warning 399";
+  echo "dlb.label dlb";
+  echo "dlb.warning 399";
+  echo "usb-monitor.label USB Monitor";
+  echo "usb-monitor.warning 399";
+  
+else
+  MODEMS=$(curl -sL -w "%{http_code}\\n" http://localhost:88/modems -o /dev/null)
+  DLB=$(curl -sL -w "%{http_code}\\n" http://localhost:88/dlb -o /dev/null)
+  USBMON=$(curl -sL -w "%{http_code}\\n" http://localhost:88/usbmonitor -o /dev/null)
+  echo "modems.value $MODEMS";
+  echo "dlb.value $DLB";
+  echo "usb-monitor.value $USBMON";
+fi

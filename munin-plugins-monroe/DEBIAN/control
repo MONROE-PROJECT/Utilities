@@ -1,0 +1,9 @@
+Package: munin-plugins-monroe
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Depends: munin-node-c (>=0.0.9), munin-plugins-c (>=0.0.9), lm-sensors(>=1:3.3.5), tuptime
+Maintainer: support@celerway.com
+Description: Extra plugins for munin
+

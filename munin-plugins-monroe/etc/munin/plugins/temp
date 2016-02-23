@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title CPU Temperature";
+  echo "cpu.label CPU temp (C)";
+  echo "cpu.warning 90";
+  echo "cpu.critical 110";
+else
+  TEMP=$(sensors -u 2>/dev/null|grep temp1_input|cut -d ':' -f2|xargs);
+  echo "cpu.value $TEMP";
+fi

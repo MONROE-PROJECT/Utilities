@@ -1,0 +1,11 @@
+#!/bin/bash
+
+function join { local IFS="$1"; shift; echo "$*"; }
+
+if [ "$1" == "config" ]; then
+  echo "graph_title Running experiments";
+  echo "running.label running experiments";
+else
+  GUIDS=$(join , $(docker ps --format {{.Image}} | grep 'monroe-'));
+  echo "running.value $GUIDS";
+fi

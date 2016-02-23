@@ -1,0 +1,6 @@
+#!/bin/sh
+
+systemctl enable metadata-exporter || true
+systemctl start  metadata-exporter || true
+systemctl enable metadata-timeloop || true
+systemctl start  metadata-timeloop || true

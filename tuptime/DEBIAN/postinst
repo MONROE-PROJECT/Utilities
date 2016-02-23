@@ -1,0 +1,4 @@
+#!/bin/sh
+
+systemctl enable tuptime || true
+systemctl start  tuptime || true

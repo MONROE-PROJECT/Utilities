@@ -1,0 +1,17 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=Metadata Exporter
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/default/metadata-exporter
+
+ExecStart=/bin/bash -c "/usr/sbin/metadata-exporter $DAEMON_OPTS --sql_nodeid=$(cat /etc/nodeid)"
+
+Type=simple
+Restart=on-failure
+
+StandardError=null
+StandardOutput=null
