@@ -3,6 +3,15 @@ Packages
 Definitions for packages that can be built as .deb.
 Packages with the same name as an existing component (e.g. metadata-exporter) are meant to extend the existing package contents and configuration.
 
+Contents
+--------
+
+  * tuptime - uptime and downtime statistics, from rfrail3/tuptime
+  * metadata-exporter - updated packaging information and utilities for kristrev/data-exporter
+  * munin-plugins-monroe - small scripts to extend munin-c with MONROE sensors
+  * xtables-addons-cgroup - precompiled iptables cgroup plugin
+
+
 Extending an existing package
 -----------
 Copy the folder contents ($FOLDERNAME) into the expanded package ($PKGNAME)
