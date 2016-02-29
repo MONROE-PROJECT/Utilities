@@ -8,7 +8,7 @@ After=network.target
 [Service]
 EnvironmentFile=/etc/default/metadata-exporter
 
-ExecStart=/bin/bash -c "/usr/sbin/metadata-exporter $DAEMON_OPTS --sql_nodeid=$(cat /etc/nodeid)"
+ExecStart=/usr/sbin/metadata-exporter -c /etc/metadata-exporter.conf
 
 Type=simple
 Restart=on-failure
