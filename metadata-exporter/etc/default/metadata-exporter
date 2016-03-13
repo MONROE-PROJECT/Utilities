@@ -1,9 +1,0 @@
-DAEMON_OPTS="-n \
-             --nl_conn \
-             --nl_pos \
-             -s \
-             --sql_database=/tmp/metadata.db \
-             --sql_meta_prefix=/tmp/metatemp \
-             -z \
-             --zmq_address=127.0.0.1 \
-             --zmq_port=5556"
