@@ -1,0 +1,26 @@
+Thanks to Mark Schank <mschank@dcbnet.com> there are two ways to read the APU reset button state:
+
+- via the leds_apu kernel module -> button state is in /sys/class/gpio/gpio187/value
+- via the apu_button character device (see below)
+
+the leds_apu driver is the 'easier' way but requries two kernel options to be enabled: CONFIG_GPIOLIB and CONFIG_GPIO_SYSFS which is not the case for Debian at least. Hence the second approach.
+
+
+----------------------------------------------------
+APU press-button switch driver: apu_button
+
+To build and install:
+	make
+	make install
+
+To load the module:
+	modprobe apu_button
+
+To read the switch state:
+	cat /dev/apu_button_s1
+
+For shell scripts
+	BUTTON_STATE=`cat /dev/apu_button_s1`
+	if test $BUTTON_STATE -eq "1"; then
+		echo "pressed"
+	fi
