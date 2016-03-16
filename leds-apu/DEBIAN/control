@@ -1,7 +1,0 @@
-Package: apu-leds
-Version: 0.1.0
-Section: devel
-Priority: optional
-Architecture: amd64
-Maintainer: support@celerway.com
-Description: kernel module to control APU front leds, from https://daduke.org/linux/apu/
