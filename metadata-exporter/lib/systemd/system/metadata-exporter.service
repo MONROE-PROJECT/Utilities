@@ -6,8 +6,6 @@ Description=Metadata Exporter
 After=network.target
 
 [Service]
-EnvironmentFile=/etc/default/metadata-exporter
-
 ExecStart=/usr/sbin/metadata-exporter -c /etc/metadata-exporter.conf
 
 Type=simple
