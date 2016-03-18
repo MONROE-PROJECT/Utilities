@@ -1,0 +1,11 @@
+[Unit]
+Description=Sends a MONROE sysevent before shutdown
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/true
+ExecStop=/usr/bin/sysevent -t System.Halt
+
+[Install]
+WantedBy=multi-user.target

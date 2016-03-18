@@ -1,0 +1,4 @@
+#!/bin/sh
+
+systemctl enable sysevent-shutdown || true
+systemctl start  sysevent-shutdown || true
