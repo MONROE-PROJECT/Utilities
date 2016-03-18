@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+import sys
+import zmq
+import argparse
+import simplejson as json
+
+def publish(eventType, extraData):
+    context = zmq.Context()
+    socket = context.socket(zmq.REQ)
+    socket.connect("ipc:///tmp/sysevent")
+
+    data = {'EventType':eventType}
+    data.update(extraData)
+
+    socket.send(json.dumps(data))
+    socket.close(5)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t","--type",  help="sets EventType field", action="store", required=True)
+    parser.add_argument("-j","--json",  help="a JSON dictionary to be sent as extra data fields", action="store")
+    parser.add_argument("-k","--key",   help="an extra data field key, requires an equal number of -v arguments", action="append")
+    parser.add_argument("-v","--value", help="an extra data field value, requires an equal number of -k arguments", action="append")
+    args = parser.parse_args()
+
+    extraData = {}
+    if args.json is not None:
+        try:
+            extraData.update(json.loads(args.json))
+        except:
+            print "sysevent: error: Could not parse --json argument."
+            sys.exit(1)
+
+    if args.key is not None and args.value is not None:
+        if len(args.key) != len(args.value):
+            print "sysevent: error: Unequal amount of --key and --value arguments."
+            sys.exit(1)
+
+        try:
+            for i,key in enumerate(args.key):
+                extraData[key] = args.value[i]
+        except Exception,ex:
+            print "Could not parse key/value arguments. %s" % ex.message
+            sys.exit(1)
+
+    publish(args.type, extraData)
+
+if __name__ == "__main__":
+    main()
+
