@@ -5,7 +5,7 @@ URL_PING=monroe1.cs.kau.se:5000/monroe/ping
 URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata
 
 REPO=monroe@163.117.140.155
-SSH="ssh -p 2280 --o ConnectTimeout=30"
+SSH="ssh -p 2280 -o ConnectTimeout=30"
 TODIR="/indir"
 
 RSYNC_PARMS="-r --include '*/' --include '*.json' --exclude '*' --prune-empty-dirs"
