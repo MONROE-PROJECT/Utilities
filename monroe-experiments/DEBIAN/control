@@ -1,0 +1,7 @@
+Package: monroe-experiments 
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Description: Run continuous monroe base experiments and sync results.
