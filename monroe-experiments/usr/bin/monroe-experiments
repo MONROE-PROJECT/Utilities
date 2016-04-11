@@ -3,7 +3,7 @@
 # TODO: move these to /etc/default
 BASEDIR=/experiments/monroe
 URL_PING=monroe1.cs.kau.se:5000/monroe/ping
-URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata
+URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata-subscriber
 
 REPO=monroe@repo.monroe-system.eu
 KEY=/etc/keys/repo.monroe-system.eu
