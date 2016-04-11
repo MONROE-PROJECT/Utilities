@@ -49,13 +49,13 @@ mk_disk "metadata";
 for IF in "usb0" "usb1" "usb2" "wwan0" "eth0"; do
   if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
     docker pull $URL_PING 2> /dev/null;
-    docker run -d --rm --net=host -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF;
+    docker run -d --net=host -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF;
   fi;
 done
 
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   docker pull $URL_METADATA 2> /dev/null;
-  docker run -d --rm --net=host -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA;
+  docker run -d --net=host -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA;
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) source files to $REPO...";
