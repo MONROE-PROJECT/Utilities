@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # TODO: move these to /etc/default
-BASEDIR=/experiments/monroe
+BASEDIR=/experiments/monroe/
 URL_PING=monroe1.cs.kau.se:5000/monroe/ping
-URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata
+URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata-subscriber
 
-REPO=monroe@repo.monroe-system.eu
+REPO=rsync@repo.monroe-system.eu
 KEY=/etc/keys/repo.monroe-system.eu
 SSH="ssh -i $KEY -p 2280 -o ConnectTimeout=30"
 TODIR="/experiments/monroe"
 
 RSYNC_PARMS="-r --include '*/' --include '*.json' --exclude '*' --prune-empty-dirs"
-RSYNC_ALL="$RSYNC_PARMS -e "$SSH" --remove-source-files --stats --timeout=30 $BASEDIR $REPO:$DESTDIR"
+RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --stats --timeout=30 $BASEDIR $REPO:$TODIR"
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 
 function mk_disk {
@@ -59,7 +59,8 @@ if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) source files to $REPO...";
-if rsync $RSYNC_ALL; then
+echo rsync $RSYNC_ALL
+if eval "rsync $RSYNC_ALL"; then
   echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) files arrived while syncing.";
 else 
   logger -t monroe-experiments "Copying experiment data failed.";
