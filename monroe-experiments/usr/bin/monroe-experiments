@@ -1,12 +1,14 @@
 #!/bin/bash
 
+# TODO: move these to /etc/default
 BASEDIR=/experiments/monroe
 URL_PING=monroe1.cs.kau.se:5000/monroe/ping
 URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata
 
-REPO=monroe@163.117.140.155
-SSH="ssh -p 2280 -o ConnectTimeout=30"
-TODIR="/indir"
+REPO=monroe@repo.monroe-system.eu
+KEY=/etc/keys/repo.monroe-system.eu
+SSH="ssh -i $KEY -p 2280 -o ConnectTimeout=30"
+TODIR="/experiments/monroe"
 
 RSYNC_PARMS="-r --include '*/' --include '*.json' --exclude '*' --prune-empty-dirs"
 RSYNC_ALL="$RSYNC_PARMS -e "$SSH" --remove-source-files --stats --timeout=30 $BASEDIR $REPO:$DESTDIR"
@@ -34,7 +36,7 @@ function merge {
     FIRSTFILE=$(find $1 -type f -name *json -print0 | xargs -0 ls -1tr | head -n 1);
     FILECOUNT=$(echo $OTHERFILES|wc -l);
     cat $OTHERFILES >> $FIRSTFILE &&
-    rm $OTHERFILES                &&  #only if successful
+    rm $OTHERFILES                &&  # only if successful
     logger -t monroe-experiments "Appended $FILECOUNT files to $FIRSTFILE";
   fi;
 }
