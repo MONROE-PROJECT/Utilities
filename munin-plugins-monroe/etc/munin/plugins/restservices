@@ -6,8 +6,8 @@ if [ "$1" == "config" ]; then
   echo "modems.warning 399";
   echo "dlb.label dlb";
   echo "dlb.warning 399";
-  echo "usb-monitor.label USB Monitor";
-  echo "usb-monitor.warning 399";
+  echo "usbmonitor.label USB Monitor";
+  echo "usbmonitor.warning 399";
   
 else
   MODEMS=$(curl -sL -w "%{http_code}\\n" http://localhost:88/modems -o /dev/null)
@@ -15,5 +15,5 @@ else
   USBMON=$(curl -sL -w "%{http_code}\\n" http://localhost:88/usbmonitor -o /dev/null)
   echo "modems.value $MODEMS";
   echo "dlb.value $DLB";
-  echo "usb-monitor.value $USBMON";
+  echo "usbmonitor.value $USBMON";
 fi

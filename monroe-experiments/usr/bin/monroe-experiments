@@ -62,6 +62,7 @@ if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) source files to $REPO...";
+echo rsync $RSYNC_ALL
 if eval "rsync $RSYNC_ALL"; then
   echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) files arrived while syncing.";
 else
