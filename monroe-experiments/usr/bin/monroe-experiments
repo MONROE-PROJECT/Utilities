@@ -16,28 +16,31 @@ RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 
 function mk_disk {
   mkdir -p $BASEDIR/$1
-  if mountpoint -q $BASEDIR/$1; then 
+  if mountpoint -q $BASEDIR/$1; then
     echo "$1 outdir is mounted";
   else
     mkdir -p $BASEDIR/$1;
-    if [ -f $BASEDIR/$1.disk ]; then 
+    if [ -f $BASEDIR/$1.disk ]; then
       echo "$1 disk image exists";
     else
-      dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1;        
-      mkfs $BASEDIR/$1.disk;                                               
+      dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1;
+      mkfs $BASEDIR/$1.disk;
     fi;
-    mount -o loop $BASEDIR/$1.disk $BASEDIR/$1;  
+    mount -o loop $BASEDIR/$1.disk $BASEDIR/$1;
   fi
 }
 
 function merge {
-  OTHERFILES=$(find $1 -type f -name *json -print0 | xargs -0 ls -1tr | tail -n +2);
-  if [ ! -z "$OTHERFILES" ]; then
-    FIRSTFILE=$(find $1 -type f -name *json -print0 | xargs -0 ls -1tr | head -n 1);
-    FILECOUNT=$(echo $OTHERFILES|wc -l);
-    cat $OTHERFILES >> $FIRSTFILE &&
-    rm $OTHERFILES                &&  # only if successful
-    logger -t monroe-experiments "Appended $FILECOUNT files to $FIRSTFILE";
+  ALLFILES=$(find $1 -type f -name \*.json)
+  TMPMERGEFILE=$(mktemp --tmpdir=$1)
+  FILECOUNT=$(echo ${ALLFILES} |grep -o '.json'|wc -l)
+  if [ $FILECOUNT -ge 2 ]; then
+    base=$(echo ${ALLFILES} | cut -f 1-2 -d . | rev |  cut -d / -f 1 | rev)
+    MERGEDFILE="$1/${base}_merged_$(date +%s).json"
+    cat ${ALLFILES} >> ${TMPMERGEFILE} &&
+    mv ${TMPMERGEFILE} ${MERGEDFILE} &&
+    rm ${ALLFILES}                &&  # only if successful
+    logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
   fi;
 }
 
@@ -59,10 +62,9 @@ if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) source files to $REPO...";
-echo rsync $RSYNC_ALL
 if eval "rsync $RSYNC_ALL"; then
   echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) files arrived while syncing.";
-else 
+else
   logger -t monroe-experiments "Copying experiment data failed.";
   merge $BASEDIR/ping;
   merge $BASEDIR/metadata;
