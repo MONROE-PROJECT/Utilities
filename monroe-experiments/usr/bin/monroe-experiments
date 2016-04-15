@@ -47,6 +47,17 @@ function merge {
 
 ##############################################################################
 
+if [ ! -f "$KEY" ]; then
+  logger -t monroe-experiments "repository key does not exist.";
+  exit 1;
+fi
+
+exec 42>/var/lock/monroe-experiments.lock
+flock -n 42 || {
+  logger -t monroe-experiments "lock file present";
+  exit 1;
+}
+
 mk_disk "ping";
 mk_disk "metadata";
 
