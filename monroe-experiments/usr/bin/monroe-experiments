@@ -41,6 +41,7 @@ function merge {
     mv ${TMPMERGEFILE} ${MERGEDFILE} &&
     rm ${ALLFILES}                &&  # only if successful
     logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
+    rm -f ${TMPMERGEFILE} # If step mv (or rm) failed above, always delete the tmpmergefile
   fi;
 }
 
