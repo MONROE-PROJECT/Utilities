@@ -62,7 +62,7 @@ mk_disk "ping";
 mk_disk "metadata";
 
 for IF in "usb0" "usb1" "usb2" "wwan0" "eth0"; do
-  if [ -z "$(ip link|grep $IF)" ]; then
+  if [ ! -z "$(ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
       docker pull $URL_PING 2> /dev/null;
       docker rm $(docker ps -aq) 2>/dev/null;
