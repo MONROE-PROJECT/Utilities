@@ -17,16 +17,16 @@ RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 function mk_disk {
   mkdir -p $BASEDIR/$1
   if mountpoint -q $BASEDIR/$1; then
-    echo "$1 outdir is mounted";
+    echo "$1 outdir is mounted"
   else
-    mkdir -p $BASEDIR/$1;
+    mkdir -p $BASEDIR/$1
     if [ -f $BASEDIR/$1.disk ]; then
-      echo "$1 disk image exists";
+      echo "$1 disk image exists"
     else
-      dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1;
-      mkfs $BASEDIR/$1.disk;
+      dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1
+      mkfs.ext4 $BASEDIR/$1.disk -F -L $1
     fi;
-    mount -o loop $BASEDIR/$1.disk $BASEDIR/$1;
+    mount -t ext4 -o loop,data=journal,nodelalloc,barrier=1 $BASEDIR/$1.disk $BASEDIR/$1
   fi
 }
 
