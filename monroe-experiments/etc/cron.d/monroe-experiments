@@ -1,5 +1,5 @@
 # /etc/cron.d/monroe-experiments
 # sync monroe experiments, ensuring they are running
 
-*/23 * * * *   root    /usr/bin/monroe-experiments
+*/1 * * * *   root    /usr/bin/monroe-experiments
 
