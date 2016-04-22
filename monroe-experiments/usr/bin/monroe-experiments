@@ -1,19 +1,9 @@
 #!/bin/bash
 set -e
 
-# TODO: move these to /etc/default
-BASEDIR=/experiments/monroe/
-URL_NOOP=monroe/noop
-URL_PING=monroe1.cs.kau.se:5000/monroe/ping
-URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata-subscriber
-URL_MPLANE=monroe/mplane
-MPLANE_PASSWORD="..."
+. /etc/default/monroe-experiments
 
-REPO=rsync@repo.monroe-system.eu
-KEY=/etc/keys/repo.monroe-system.eu
 SSH="ssh -i $KEY -p 2280 -o ConnectTimeout=30"
-TODIR="/experiments/monroe"
-
 RSYNC_PARMS="-r --include '*/' --include '*.json' --exclude '*' --prune-empty-dirs"
 RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --stats --timeout=30 $BASEDIR $REPO:$TODIR"
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
