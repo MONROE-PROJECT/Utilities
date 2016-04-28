@@ -62,8 +62,9 @@ MNS="ip netns exec monroe";
 if [ -z "$(docker ps --no-trunc|grep $URL_NOOP)" ]; then
   #docker pull $URL_NOOP 2> /dev/null;
   docker run -d --net=bridge $URL_NOOP;
-  CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
-  PID=$(docker inspect -f '{{.State.Pid}}' $CID)
+  CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1);
+  PID=$(docker inspect -f '{{.State.Pid}}' $CID);
+  mkdir -p /var/run/netns;
   rm /var/run/netns/monroe 2>/dev/null;
   ln -s /proc/$PID/ns/net /var/run/netns/monroe;
 
@@ -78,11 +79,12 @@ fi
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 
-INTERFACES="usb0 usb1 usb2 wlan0 eth0";
+INTERFACES="usb0 usb1 usb2 wlan0 eth0 wwan2";
 for IF in $INTERFACES; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then continue; fi
   if [ -z "$(ip link|grep $IF)" ]; then continue; fi
 
+  ip link del montmp || true;
   ip link add link $IF montmp type macvlan;
   ip link set montmp netns monroe;
   $MNS ip link set montmp name $IF;
@@ -91,7 +93,7 @@ for IF in $INTERFACES; do
   $MNS ifconfig $IF up;
 done
 
-for IF in "usb0" "usb1" "usb2" "wwan0" "eth0"; do
+for IF in "usb0" "usb1" "usb2" "wwan0" "eth0" "wwan2"; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
       docker pull $URL_PING 2> /dev/null;
