@@ -53,6 +53,7 @@ flock -n 42 || {
 }
 trap "flock -u 42" EXIT
 
+
 mk_disk "ping";
 mk_disk "metadata";
 mk_disk "mplane";
@@ -107,6 +108,7 @@ done
 for IF in $INTERFACES; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
+      docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
       docker pull $URL_PING 2> /dev/null;
       docker run -d --net=container:$CID -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF;
     fi;
@@ -114,6 +116,7 @@ for IF in $INTERFACES; do
 done
 
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
+  docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
   docker pull $URL_METADATA 2> /dev/null;
   docker run -d --net=container:$CID -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA;
 fi
