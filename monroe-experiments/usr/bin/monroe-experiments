@@ -88,7 +88,7 @@ if [ ! -e /var/run/netns/monroe ]; then
   exit 1;
 fi
 
-if [ -z "$(ps ax|grep multi-netns-monroe)" ]; then
+if [ -z "$(ps ax|grep multi|grep netns-monroe)" ]; then
   echo "multi is not started, restarting";
   $MNS multi_client -d -c /etc/multi-netns-monroe.yaml;
 fi
