@@ -3,7 +3,7 @@ set -e
 
 . /etc/default/monroe-experiments
 
-SSH="ssh -i $KEY -p 2280 -o ConnectTimeout=30"
+SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 RSYNC_PARMS="-r --include '*/' --include '*.json' --exclude '*' --prune-empty-dirs"
 RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --stats --timeout=30 $BASEDIR $REPO:$TODIR"
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
