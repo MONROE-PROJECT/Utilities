@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 . /etc/default/monroe-experiments
 
 SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
