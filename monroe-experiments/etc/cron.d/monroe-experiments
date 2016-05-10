@@ -1,5 +1,7 @@
 # /etc/cron.d/monroe-experiments
 # sync monroe experiments, ensuring they are running
 
+PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 */1 * * * *   root    /usr/bin/monroe-experiments
 
