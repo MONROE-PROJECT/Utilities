@@ -4,7 +4,7 @@ set -e
 . /etc/default/monroe-experiments
 
 SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
-RSYNC_PARMS="-r --include '*/' --include '*.json' --exclude '*' --prune-empty-dirs"
+RSYNC_PARMS="-r --include '*/' --include '*.json' --include '*.gz' --exclude '*' --prune-empty-dirs"
 RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --stats --timeout=30 $BASEDIR $REPO:$TODIR"
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 
@@ -139,15 +139,15 @@ if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
   docker run -d --net=container:$CID -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD;
 fi
 
-echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) source files to $REPO...";
+echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
 echo rsync $RSYNC_ALL
-if eval "rsync $RSYNC_ALL"; then
-  echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) files arrived while syncing.";
+if eval "rsync --stats $RSYNC_ALL"; then
+  echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files arrived while syncing.";
 else
   logger -t monroe-experiments "Copying experiment data failed.";
   merge $BASEDIR/ping;
   merge $BASEDIR/metadata;
 fi
 
-eval "rsync $USER_RSYNC"
+eval "rsync --stats $USER_RSYNC"
 find $USERDIR -depth -type d -empty -delete
