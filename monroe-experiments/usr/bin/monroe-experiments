@@ -123,22 +123,22 @@ done
 for IF in $INTERFACES; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
-      docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
-      docker pull $URL_PING 2> /dev/null;
-      docker run -d --net=container:$CID -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF;
+      docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
+      docker pull $URL_PING 2> /dev/null                || true;  # if the pull fails, try a local copy
+      docker run -d --net=container:$CID -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF || true;
     fi;
   fi;
 done
 
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
-  docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
-  docker pull $URL_METADATA 2> /dev/null;
-  docker run -d --net=container:$CID -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA;
+  docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
+  docker pull $URL_METADATA 2> /dev/null            || true;
+  docker run -d --net=container:$CID -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
 fi
 
 if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
-  docker pull $URL_MPLANE 2> /dev/null;
-  docker run -d --net=container:$CID -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD;
+  docker pull $URL_MPLANE 2> /dev/null || true;
+  docker run -d --net=container:$CID -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD || true;
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
