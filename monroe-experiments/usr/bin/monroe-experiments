@@ -88,6 +88,8 @@ if [ ! -e /var/run/netns/monroe ]; then
   $MNS ifconfig eth0 down;
   $MNS ip link set eth0 name metadata;
   $MNS ifconfig metadata $IP up;
+
+  logger -t monroe-experiments "Started noop container and monroe netns"
 fi
 
 if [ ! -e /var/run/netns/monroe ]; then
@@ -96,7 +98,7 @@ if [ ! -e /var/run/netns/monroe ]; then
 fi
 
 if [ -z "$(ps ax|grep multi|grep netns-monroe)" ]; then
-  echo "multi is not started, restarting";
+  logger -t monroe-experiments "multi is not started, restarting";
   $MNS multi_client -d -c /etc/multi-netns-monroe.yaml;
 fi
 
@@ -126,6 +128,7 @@ for IF in $INTERFACES; do
       docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
       docker pull $URL_PING 2> /dev/null                || true;  # if the pull fails, try a local copy
       docker run -d --net=container:$CID -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF || true;
+      logger -t monroe-experiments "started ping container on $IF";
     fi;
   fi;
 done
@@ -134,11 +137,13 @@ if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
   docker pull $URL_METADATA 2> /dev/null            || true;
   docker run -d --net=container:$CID -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
+  logger -t monroe-experiments "started metadata container";
 fi
 
 if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
   docker pull $URL_MPLANE 2> /dev/null || true;
   docker run -d --net=container:$CID -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD || true;
+  logger -t monroe-experiments "started mplane container";
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
