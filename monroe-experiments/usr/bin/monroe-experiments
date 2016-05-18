@@ -106,6 +106,7 @@ CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 INTERFACES="usb0 usb1 usb2 wlan0 eth0 wwan2";
 for IF in $INTERFACES; do
   if [ -z "$(ip link|grep $IF)" ]; then
+    $MNS ip link del $IF 2>/dev/null || true;
     continue;
   fi
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
