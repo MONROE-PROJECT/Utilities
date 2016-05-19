@@ -103,7 +103,9 @@ fi
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 
-INTERFACES="usb0 usb1 usb2 wlan0 eth0 wwan2";
+INTERFACES="usb0 usb1 usb2 wlan0 eth0";
+INTERFACES_PING="usb0 usb1 usb2 wlan0";
+
 for IF in $INTERFACES; do
   if [ -z "$(ip link|grep $IF)" ]; then
     $MNS ip link del $IF 2>/dev/null || true;
@@ -126,12 +128,24 @@ for IF in $INTERFACES; do
   $MNS ifconfig $IF up;
 done
 
-for IF in $INTERFACES; do
+for IF in $INTERFACES_PING; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
       docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
       docker pull $URL_PING 2> /dev/null                || true;  # if the pull fails, try a local copy
-      docker run -d --net=container:$CID -v $BASEDIR/ping:/outdir -v /etc/nodeid:/nodeid:ro $URL_PING $IF || true;
+
+      COUNT=$(cat $BASEDIR/ping.counter 2>/dev/null || echo 0)
+      COUNT=$(($COUNT + 1))
+      echo $COUNT > $BASEDIR/ping.counter
+
+      IMAGEID=$(docker images -q --no-trunc $URL_PING)
+      NODEID=$(cat /etc/nodeid)
+      
+      echo "{\"nodeid\":\"$NODEID\", \
+             \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
+             \"interfacename\": \"$IF\"}" > $BASEDIR/ping.conf
+
+      docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.conf:/monroe/config:ro $URL_PING $IF || true;
       logger -t monroe-experiments "started ping container on $IF";
     fi;
   fi;
@@ -140,7 +154,7 @@ done
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
   docker pull $URL_METADATA 2> /dev/null            || true;
-  docker run -d --net=container:$CID -v $BASEDIR/metadata:/outdir -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
+  docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
   logger -t monroe-experiments "started metadata container";
 fi
 
