@@ -143,9 +143,9 @@ for IF in $INTERFACES_PING; do
       
       echo "{\"nodeid\":\"$NODEID\", \
              \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
-             \"interfacename\": \"$IF\"}" > $BASEDIR/ping.conf
+             \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
 
-      docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.conf:/monroe/config:ro $URL_PING $IF || true;
+      docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro $URL_PING $IF || true;
       logger -t monroe-experiments "started ping container on $IF";
     fi;
   fi;
