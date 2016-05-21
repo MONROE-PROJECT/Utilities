@@ -111,7 +111,7 @@ for IF in $INTERFACES; do
     $MNS ip link del $IF 2>/dev/null || true;
     continue;
   fi
-  if ["$(ip link|grep 'state DOWN'|grep $IF)" ]; then
+  if [ ! -z "$(ip link|grep 'state DOWN'|grep $IF)" ]; then
     $MNS ifconfig $IF down 2>/dev/null || true;
     continue;
   fi
