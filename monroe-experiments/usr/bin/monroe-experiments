@@ -145,7 +145,7 @@ for IF in $INTERFACES_PING; do
              \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
              \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
 
-      docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro $URL_PING $IF || true;
+      docker run -d --net=host -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro $URL_PING $IF || true;
       logger -t monroe-experiments "started ping container on $IF";
     fi;
   fi;
@@ -154,13 +154,13 @@ done
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
   docker pull $URL_METADATA 2> /dev/null            || true;
-  docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
+  docker run -d --net=host -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
   logger -t monroe-experiments "started metadata container";
 fi
 
 if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
   docker pull $URL_MPLANE 2> /dev/null || true;
-  docker run -d --net=container:$CID -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD || true;
+  docker run -d --net=host -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD || true;
   logger -t monroe-experiments "started mplane container";
 fi
 
