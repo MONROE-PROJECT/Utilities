@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title MIFI battery status";
+  for IF in "usb0" "usb1" "usb2"; do
+    echo "$IF.label $IF";
+    echo "${IF}charging.label $IF charging";
+    echo "$IF.warning 30";
+    echo "$IF.critical 15";
+  done
+else
+  for IF in "usb0" "usb1" "usb2"; do
+    CHARGE=-1;
+    CHARGING=0;
+    if [ ! -z "$(ifconfig $IF 2>/dev/null|grep 'inet addr')" ]; then
+      DATA=$(curl -s 'http://192.168.0.1/goform/goform_get_cmd_process?multi_data=1&cmd=battery_charging%2Cbattery_vol_percent' -H 'Referer: http://192.168.0.1/index.html' --interface $IF);
+      if [ ! -z "$(echo $DATA|grep charging)" ]; then
+        CHARGE=$(echo $DATA|jq -r '.battery_vol_percent');
+        CHARGING=$(echo $DATA|jq -r '.battery_charging');
+      fi;
+    fi;
+    echo "$IF.value $CHARGE";
+    echo "${IF}charging.value $CHARGING";
+  done;
+fi
