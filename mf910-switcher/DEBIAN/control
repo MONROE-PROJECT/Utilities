@@ -1,0 +1,7 @@
+Package: mf910-switcher
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Description: modeswitch MF910 modems

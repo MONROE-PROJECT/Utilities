@@ -1,0 +1,21 @@
+#!/bin/bash
+
+NUM_MF910=`lsusb | grep "19d2\:1225" | wc -l`
+COUNTER=0;
+
+if [ "$NUM_MF910" -eq 0 ];
+then
+    exit 0;
+fi
+
+logger -t mf910_switcher "Will restart $NUM_MF910 device(s)";
+
+while [ "$COUNTER" -lt "$NUM_MF910" ];
+do
+    logger -t mf910_switcher "Will restart an MF910";
+
+    #Are we guaranteed stable matching VID/PID?
+    /usr/sbin/usb_modeswitch -K -v 0x19d2 -p 0x1225 -V 0x19d2 -P 0x1403 -s 5
+
+    let COUNTER=COUNTER+1;
+done
