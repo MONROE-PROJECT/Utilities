@@ -43,7 +43,7 @@ do
     # INSERT before UPDATE). We might get problems if the same router reboots many
     # times and we dont have a proper clock, but we will be saved by update
     BEFORE_TIME=$(date '+%s')
-    $RSYNC_PATH -t --remove-source-files --stats --timeout=30 -e "ssh -i $META_KEY_PATH -p $RSYNC_DST_PORT -o StrictHostKeychecking=no -o ConnectTimeout=30" $RSYNC_LOCAL \
+    $RSYNC_PATH -t --remove-source-files --stats --timeout=30 -e 'ssh -i $META_KEY_PATH -p $RSYNC_DST_PORT -o StrictHostKeychecking=no -o ConnectTimeout=30' $RSYNC_LOCAL \
         $RSYNC_REMOTE_PREFIX/$CWY_VER/$CWY_NODEID/
     RETVAL=$?
     AFTER_TIME=$(date '+%s')
