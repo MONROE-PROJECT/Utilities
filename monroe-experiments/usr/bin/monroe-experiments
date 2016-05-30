@@ -67,12 +67,15 @@ mk_disk "mplane";
 docker rm $(docker ps -aq) 2>/dev/null || true;
 MNS="ip netns exec monroe";
 
-if [ ! -e /var/run/netns/monroe ]; then
+CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
+
+if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any running containers
-  CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
   if [ ! -z "$CID" ]; then
     docker stop -t 0 $CID;
   fi
+  # stop any multi client running in that namespace
+  pgrep -f multi-netns-monroe | xargs -r kill
 
   docker pull $URL_NOOP 2> /dev/null;
   docker run -d --net=bridge $URL_NOOP;
@@ -88,16 +91,16 @@ if [ ! -e /var/run/netns/monroe ]; then
   $MNS ip link set eth0 name metadata;
   $MNS ifconfig metadata $IP up;
 
-  logger -t monroe-experiments "Started noop container and monroe netns"
+  logger -t monroe-experiments "Started noop container and monroe netns."
 fi
 
 if [ ! -e /var/run/netns/monroe ]; then
-  echo "network namespace is missing";
+  logger -t monroe-experiments "Network namespace is missing.";
   exit 1;
 fi
 
 if [ -z "$(ps ax|grep multi|grep netns-monroe)" ]; then
-  logger -t monroe-experiments "multi is not started, restarting";
+  logger -t monroe-experiments "multi is not started, restarting.";
   $MNS multi_client -d -c /etc/multi-netns-monroe.yaml;
 fi
 
@@ -146,7 +149,7 @@ for IF in $INTERFACES_PING; do
              \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
 
       docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro $URL_PING $IF || true;
-      logger -t monroe-experiments "started ping container on $IF";
+      logger -t monroe-experiments "started ping container on $IF.";
     fi;
   fi;
 done
@@ -155,13 +158,13 @@ if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
   docker pull $URL_METADATA 2> /dev/null            || true;
   docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
-  logger -t monroe-experiments "started metadata container";
+  logger -t monroe-experiments "started metadata container.";
 fi
 
 if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
   docker pull $URL_MPLANE 2> /dev/null || true;
   docker run -d --net=container:$CID -v $BASEDIR/mplane:/outdir -v /etc/nodeid:/nodeid:ro $URL_MPLANE $MPLANE_PASSWORD || true;
-  logger -t monroe-experiments "started mplane container";
+  logger -t monroe-experiments "started mplane container.";
 fi
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
