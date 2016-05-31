@@ -6,9 +6,15 @@ Packages with the same name as an existing component (e.g. metadata-exporter) ar
 Contents
 --------
 
-  * tuptime - uptime and downtime statistics, from rfrail3/tuptime
+  * leds-apu - a kernel module to control the LED status on an APU v1
   * metadata-exporter - updated packaging information and utilities for kristrev/data-exporter
+  * mf910-switcher - a script to mode switch ZTE MF910 modems
+  * monroe-experiments - a cron job to setup the MONROE network namespace and continuous experiments
   * munin-plugins-monroe - small scripts to extend munin-c with MONROE sensors
+  * network-test - a script to test cloning interfaces into the MONROE network namespace
+  * read_rx_tx - a utility to read rx tx values from interfaces
+  * sysevent - a script to send node events to the metadata exporter
+  * tuptime - uptime and downtime statistics, from rfrail3/tuptime
   * xtables-addons-cgroup - precompiled iptables cgroup plugin
 
 
