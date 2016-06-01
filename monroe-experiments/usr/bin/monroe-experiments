@@ -177,6 +177,4 @@ else
   merge $BASEDIR/metadata;
 fi
 
-eval "rsync --stats $USER_RSYNC"
-touch $USERDIR/.keep
-find $USERDIR -depth -type d -empty -delete
+monroe-user-experiments

@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /etc/default/monroe-experiments
+
+SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
+USER_RSYNC_PARMS="-r --exclude '/*.*' --prune-empty-dirs"
+USER_RSYNC="$USER_RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
+
+eval "rsync --stats $USER_RSYNC"
+touch $USERDIR/.keep
+find $USERDIR -depth -type d -empty -delete
