@@ -46,7 +46,8 @@ for image in images:
     parents[digest]=parent
     parent = digest
 
-if not ":" in url:
+# check if a tag is provided (: may be used for port numbers)
+if "/" in url.split(":")[-1]:
   url = url + ":latest"
 
 queried = tags.get(url)
@@ -66,6 +67,7 @@ def browse_siblings(siblings, taglist):
   return taglist
 
 sizes = 0
+layer_count = 0
 sibling_tags = []
 
 while True:
@@ -84,8 +86,9 @@ while True:
     size = layers.get(parent).get('Size')
     sizes += size
     logger.info("added layer (id %s), size %i" % (id,size))
+    layer_count += 1
   queried = parent
 
-print "%i bytes." % (sizes,)
+print "%i bytes, %i layers." % (sizes, layer_count)
 logger.info("Siblings: %s" % (json.dumps(sibling_tags),))
 logger.info("For more details, try 'docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock nate/dockviz images -i -n -t'")
