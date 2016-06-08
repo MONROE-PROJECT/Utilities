@@ -28,10 +28,10 @@ else
         RX=$(cat /sys/class/net/$IF/statistics/rx_bytes);
         TX=$(cat /sys/class/net/$IF/statistics/tx_bytes);
       fi
-      ip netns exec monroe test -f /sys/class/net/$IF/statistics/rx_bytes && {
-        RXMONROE=$(ip netns exec monroe cat /sys/class/net/$IF/statistics/rx_bytes);
-        TXMONROE=$(ip netns exec monroe cat /sys/class/net/$IF/statistics/tx_bytes);
-      }
+      sudo ip netns exec monroe test -f /sys/class/net/$IF/statistics/rx_bytes && {
+        RXMONROE=$(sudo ip netns exec monroe cat /sys/class/net/$IF/statistics/rx_bytes);
+        TXMONROE=$(sudo ip netns exec monroe cat /sys/class/net/$IF/statistics/tx_bytes);
+      } 
 
       DATA=$(curl -s 'http://192.168.0.1/goform/goform_get_cmd_process?multi_data=1&cmd=realtime_rx_bytes,realtime_tx_bytes,monthly_rx_bytes,monthly_tx_bytes' -H 'Referer: http://192.168.0.1/index.html' --interface $IF);
       if [ ! -z "$(echo $DATA|grep rx_bytes)" ]; then
