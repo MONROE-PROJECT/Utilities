@@ -1,0 +1,53 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title Interface RX/TX";
+  for IF in "usb0" "usb1" "usb2" "wwan0" "wwan2"; do
+    echo "${IF}RX.label $IF received (host)";
+    echo "${IF}TX.label $IF sent (host)";
+    echo "${IF}RXMonroe.label $IF received (monroe)";
+    echo "${IF}TXMonroe.label $IF sent (monroe)";
+    echo "${IF}RXZTE.label $IF received (ZTE)";
+    echo "${IF}TXZTE.label $IF sent (ZTE)";
+    echo "${IF}RXZTEMonthly.label $IF received (ZTE, monthly)";
+    echo "${IF}TXZTEMonthly.label $IF sent (ZTE, monthly)";
+  done
+else
+  for IF in "usb0" "usb1" "usb2" "wwan0" "wwan2"; do
+    RX=-1;
+    TX=-1;
+    RXMONROE=-1;
+    TXMONROE=-1;
+    RXZTE=-1;
+    TXZTE=-1;
+    RXZTE_MON=-1;
+    TXZTE_MON=-1;
+
+    if [ ! -z "$(ifconfig $IF 2>/dev/null|grep 'inet addr')" ]; then
+      if [ -f /sys/class/net/$IF/statistics/rx_bytes ]; then
+        RX=$(cat /sys/class/net/$IF/statistics/rx_bytes);
+        TX=$(cat /sys/class/net/$IF/statistics/tx_bytes);
+      fi
+      ip netns exec monroe test -f /sys/class/net/$IF/statistics/rx_bytes && {
+        RXMONROE=$(ip netns exec monroe cat /sys/class/net/$IF/statistics/rx_bytes);
+        TXMONROE=$(ip netns exec monroe cat /sys/class/net/$IF/statistics/tx_bytes);
+      }
+
+      DATA=$(curl -s 'http://192.168.0.1/goform/goform_get_cmd_process?multi_data=1&cmd=realtime_rx_bytes,realtime_tx_bytes,monthly_rx_bytes,monthly_tx_bytes' -H 'Referer: http://192.168.0.1/index.html' --interface $IF);
+      if [ ! -z "$(echo $DATA|grep rx_bytes)" ]; then
+        RXZTE=$(echo $DATA|jq -r '.realtime_rx_bytes');
+        TXZTE=$(echo $DATA|jq -r '.realtime_tx_bytes');
+        RXZTE_MON=$(echo $DATA|jq -r '.monthly_rx_bytes');
+        TXZTE_MON=$(echo $DATA|jq -r '.monthly_tx_bytes');
+      fi;
+    fi;
+    echo "${IF}RX.value $RX";
+    echo "${IF}TX.value $TX";
+    echo "${IF}RXMonroe.value $RXMONROE";
+    echo "${IF}TXMonroe.value $TXMONROE";
+    echo "${IF}RXZTE.value $RXZTE";
+    echo "${IF}TXZTE.value $TXZTE";
+    echo "${IF}RXZTEMonthly.value $RXZTE_MON";
+    echo "${IF}TXZTEMonthly.value $TXZTE_MON";
+  done;
+fi
