@@ -2,4 +2,4 @@
 
 update-initramfs -u
 rmmod uas usb-storage 2>/dev/null || true
-pkill -SIGUSR1 usb_monitor
+pkill -SIGUSR1 usb_monitor || true
