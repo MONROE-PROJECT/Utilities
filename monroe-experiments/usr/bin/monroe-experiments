@@ -64,7 +64,15 @@ mk_disk "ping";
 mk_disk "metadata";
 mk_disk "mplane";
 
-docker rm $(docker ps -aq) 2>/dev/null || true;
+for CONTAINER in $(docker ps -aq); do
+  if [ "$(docker inspect --format='{{.State.Running}}' $CONTAINER)" == "false" ]; then
+    if [[ ! "$(docker inspect --format '{{.Config.Image}}' $CONTAINER)" == "monroe-"* ]]; then
+      # remove stale containers, unless they are user experiments
+      docker rm $(docker ps -aq) 2>/dev/null || true;
+    fi;
+  fi;
+done
+
 MNS="ip netns exec monroe";
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
