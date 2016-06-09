@@ -139,6 +139,8 @@ for IF in $INTERFACES; do
   $MNS ifconfig $IF up;
 done
 
+NODEID=$(cat /etc/nodeid)
+
 for IF in $INTERFACES_PING; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
@@ -150,7 +152,6 @@ for IF in $INTERFACES_PING; do
       echo $COUNT > $BASEDIR/ping.counter
 
       IMAGEID=$(docker images -q --no-trunc $URL_PING)
-      NODEID=$(cat /etc/nodeid)
       
       echo "{\"nodeid\":\"$NODEID\", \
              \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
@@ -165,7 +166,9 @@ done
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
   docker pull $URL_METADATA 2> /dev/null            || true;
-  docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro $URL_METADATA || true;
+
+  echo "{\"nodeid\":\"$NODEID\"}" > $BASEDIR/metadata.conf
+  docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro $URL_METADATA || true;
   logger -t monroe-experiments "started metadata container.";
 fi
 
