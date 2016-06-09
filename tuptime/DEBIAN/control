@@ -4,4 +4,6 @@ Section: devel
 Priority: optional
 Architecture: amd64
 Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/tuptime
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
 Description: tuptime uptime statistics tracker from https://github.com/rfrail3/tuptime

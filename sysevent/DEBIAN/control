@@ -5,4 +5,6 @@ Priority: optional
 Architecture: amd64
 Maintainer: support@celerway.com
 Description: Helper script to publish system events to metadata
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/sysevent
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
 Depends: python-zmq, python-simplejson

@@ -6,5 +6,7 @@ Architecture: amd64
 Depends: libc6 (>= 2.14), libgps21 (>= 3.3), libjson-c2 (>= 0.10), libmnl0 (>= 1.0.3-4~), libsqlite3-0 (>= 3.7.15), dlb (>=0.1.0), jq (>=1.4), curl (>=7.38), libsodium13 (>=1.0), libzmq3 (>=4.0.5), gpsd (>=3.11)
 Installed-Size: 73
 Maintainer: Kristian R. Evensen <kristrev@celerway.com>
+Vcs-Browser: https://github.com/MONROE-PROJECT/data-exporter
+Vcs-Git: https://github.com/MONROE-PROJECT/data-exporter.git
 Description: meta_exporter built using CMake
 

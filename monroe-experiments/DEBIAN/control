@@ -4,4 +4,6 @@ Section: devel
 Priority: optional
 Architecture: amd64
 Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/monroe-experiments
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
 Description: Run continuous monroe base experiments and sync results.

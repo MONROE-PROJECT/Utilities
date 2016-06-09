@@ -6,4 +6,6 @@ Architecture: amd64
 Installed-Size: 17
 Depends: iptables, libnftnl4
 Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/xtables-addons-cgroup
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
 Description: IPtables cgroup/net_cls module from git.netfilter.org/iptables/
