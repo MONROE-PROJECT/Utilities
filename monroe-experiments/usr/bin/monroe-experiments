@@ -66,9 +66,16 @@ mk_disk "mplane";
 
 for CONTAINER in $(docker ps -aq); do
   if [ "$(docker inspect --format='{{.State.Running}}' $CONTAINER)" == "false" ]; then
+    # remove stale containers, unless they are user experiments
     if [[ ! "$(docker inspect --format '{{.Config.Image}}' $CONTAINER)" == "monroe-"* ]]; then
-      # remove stale containers, unless they are user experiments
       docker rm $(docker ps -aq) 2>/dev/null || true;
+    fi;
+  else
+    # stop and remove running containers, if their images have been untagged (updated)
+    IMAGEID=$(docker inspect --format '{{.Image}}' $CONTAINER)
+    if [[ "$(docker inspect --format '{{.RepoTags}}' $IMAGEID)" == "[]" ]]; then 
+      docker stop -t 0 $CONTAINER || true;
+      docker rmi -f $IMAGEID || true;
     fi;
   fi;
 done
