@@ -79,6 +79,8 @@ for CONTAINER in $(docker ps -aq); do
     fi;
   fi;
 done
+# clean stale images
+docker rmi $(docker images -a|grep '^<none>'|awk "{print \$3}") 2>/dev/null
 
 MNS="ip netns exec monroe";
 
