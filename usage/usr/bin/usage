@@ -1,0 +1,35 @@
+#!/bin/bash
+ 
+## usage: ./usage basedir interface [interface, ...]
+## where: basedir = directory to store usage statistics in
+##        interface = interface to monitor 
+
+BASEDIR=$1
+
+mkdir -p $BASEDIR
+for IF in "${@:2}"; do
+  rxtx $IF > $BASEDIR/$IF.current || {
+    rm $BASEDIR/$IF.current;
+    continue
+  }
+  if [ -f $BASEDIR/$IF.last ]; then 
+    CURR=$(cat $BASEDIR/$IF.current)
+    LAST=$(cat $BASEDIR/$IF.last)
+    RX=$(echo $CURR | cut -d ' ' -f 2)
+    TX=$(echo $CURR | cut -d ' ' -f 4)
+    RXL=$(echo $LAST | cut -d ' ' -f 2)
+    TXL=$(echo $LAST | cut -d ' ' -f 4)
+    RXT=$(cat $BASEDIR/$IF.total.rx || echo 0)
+    TXT=$(cat $BASEDIR/$IF.total.tx || echo 0)
+    if (($RX > $RXL)); then 
+      RXT=$(($RXT + $RX - $RXL))
+      echo $RXT > $BASEDIR/$IF.total.rx
+    fi
+    if (($TX > $TXL)); then 
+      TXT=$(($TXT + $TX - $TXL))
+      echo $TXT > $BASEDIR/$IF.total.tx
+    fi
+    echo $(($RXT + $TXT)) > $BASEDIR/$IF.total
+  fi
+  mv $BASEDIR/$IF.current $BASEDIR/$IF.last
+done

@@ -1,0 +1,9 @@
+Package: monroe-usage
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/monroe-experiments
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: Sum interface rx/tx statistics in a permanent location
