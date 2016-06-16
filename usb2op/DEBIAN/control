@@ -1,0 +1,9 @@
+Package: monroe-usb2op
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/usb2op
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: Map interface names to operator codes, according to a static table (usb0 -> op2).
