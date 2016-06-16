@@ -7,6 +7,11 @@ import simplejson as json
 if len(sys.argv) < 2:
   sys.exit(1)
 
+interface = sys.argv[1]
+if interface in ["eth0", "wlan0"]:
+  print interface
+  sys.exit(0)
+
 r = urllib2.urlopen("http://localhost:88/modems").read()
 data = json.loads(r)
 
@@ -17,7 +22,7 @@ operators = {
 }
 
 for modem in data:
-  if modem.get('ifname','') == sys.argv[1]:
+  if modem.get('ifname','') == interface:  
     op = operators.get(modem.get('ispName',''))
     if op is not None:
       print op

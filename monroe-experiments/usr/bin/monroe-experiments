@@ -124,7 +124,7 @@ fi
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 
 INTERFACES="usb0 usb1 usb2 wlan0 eth0";
-INTERFACES_PING="usb0 usb1 usb2 wlan0";
+INTERFACES_PING="op0 op1 op2";
 
 for IF in $INTERFACES; do
   if [ -z "$(ip link|grep $IF)" ]; then
@@ -140,12 +140,12 @@ for IF in $INTERFACES; do
     continue;
   fi
 
-  ip link add link $IF montmp type macvlan;
-  ip link set montmp netns monroe;
-  $MNS ip link set montmp name $IF;
+  OP=$(usb2op $IF)
+  ip link add link $IF $OP type macvlan;
+  ip link set $OP netns monroe;
 
   # TODO: do a proper network configuration, or run multi inside the container
-  $MNS ifconfig $IF up;
+  $MNS ifconfig $OP up;
 done
 
 NODEID=$(cat /etc/nodeid)
