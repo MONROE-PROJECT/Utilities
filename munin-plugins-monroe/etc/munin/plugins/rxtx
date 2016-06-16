@@ -21,11 +21,11 @@ if [ "$1" == "config" ]; then
   done
 else
   for IF in "eth0" "wlan0" "usb0" "usb1" "usb2" "wwan0" "wwan2"; do
-    RX=$(cat $BASEDIR/$IF.total.rx 2>/dev/null || echo "-1")
-    RXNS=$(cat $BASEDIR/netns/$IF.total.rx 2>/dev/null || echo "-1")
+    RX=$(cat $BASEDIR/$IF.rx.total 2>/dev/null || echo "-1")
+    RXNS=$(cat $BASEDIR/netns/$IF.rx.total 2>/dev/null || echo "-1")
     RXTOTAL=$(($RX + $RXNS))
-    TX=$(cat $BASEDIR/$IF.total.tx 2>/dev/null || echo "-1")
-    TXNS=$(cat $BASEDIR/netns/$IF.total.tx 2>/dev/null || echo "-1")
+    TX=$(cat $BASEDIR/$IF.tx.total 2>/dev/null || echo "-1")
+    TXNS=$(cat $BASEDIR/netns/$IF.tx.total 2>/dev/null || echo "-1")
     TXTOTAL=$(($TX + $TXNS))
     GRAND=$(($RXTOTAL + $TXTOTAL))
     
