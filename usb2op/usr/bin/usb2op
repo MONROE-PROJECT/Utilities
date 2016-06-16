@@ -12,7 +12,7 @@ data = json.loads(r)
 
 operators = { 
   "Telenor": "op1",
-  "Netcom": "op2",
+  "NetCom": "op2",
   "242 14": "op3",
 }
 
