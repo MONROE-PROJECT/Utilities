@@ -19,14 +19,14 @@ function mk_disk {
   if mountpoint -q $BASEDIR/$1; then
     echo "$1 outdir is mounted"
   else
-    mkdir -p $BASEDIR/$1
-    if [ -f $BASEDIR/$1.disk ]; then
-      echo "$1 disk image exists"
+    if [ -b /dev/vg-monroe/cont-$1 ]; then
+      echo "logical volume exists";
     else
-      dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1
-      mkfs.ext4 $BASEDIR/$1.disk -F -L $1
+      mkdir -p $BASEDIR/$1
+      lvcreate -L 100M vg-monroe -n cont-$1
+      mkfs.ext4 /dev/vg-monroe/cont-$1 -F -L $1
     fi;
-    mount -t ext4 -o loop,data=journal,nodelalloc,barrier=1 $BASEDIR/$1.disk $BASEDIR/$1
+    mount -t ext4 /dev/vg-monroe/cont-$1 $BASEDIR/$1
   fi
 }
 
