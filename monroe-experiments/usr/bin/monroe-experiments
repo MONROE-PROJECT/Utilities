@@ -19,14 +19,28 @@ function mk_disk {
   if mountpoint -q $BASEDIR/$1; then
     echo "$1 outdir is mounted"
   else
+    MNTPNT=""
     if [ -b /dev/vg-monroe/cont-$1 ]; then
-      echo "logical volume exists";
+      echo "logical volume exists on vg-monroe";
+      MNTPNT=/dev/vg-monroe/cont-$1
+    elif [ -b /dev/Monroe-X-vg/cont-$1 ]; then
+      echo "logical volume exists on Monroe-X-vg (deprecated)";
+      MNTPNT=/dev/Monroe-X-vg/cont-$1
     else
       mkdir -p $BASEDIR/$1
-      lvcreate -L 100M vg-monroe -n cont-$1
-      mkfs.ext4 /dev/vg-monroe/cont-$1 -F -L $1
+      if [ $(lvcreate -L 100M vg-monroe -n cont-$1) ]; then
+        MNTPNT=/dev/vg-monroe/cont-$1
+      elif [ $(lvcreate -L 100M Monroe-X-vg -n cont-$1) ]; then
+        MNTPNT=/dev/Monroe-X-vg/cont-$1 
+      else 
+        if [ ! -f $BASEDIR/$1.disk ]; then
+          dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1
+        fi
+        MNTPNT=$BASEDIR/$1.disk 
+      fi
+      mkfs.ext4 $MNTPNT -F -L $1
     fi;
-    mount -t ext4 /dev/vg-monroe/cont-$1 $BASEDIR/$1
+    mount -t ext4 $MNTPNT $BASEDIR/$1
   fi
 }
 
