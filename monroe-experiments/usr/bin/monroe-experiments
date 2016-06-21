@@ -155,8 +155,9 @@ for IF in $INTERFACES; do
   fi
 
   OP=$(usb2op $IF)
-  ip link add link $IF $OP type macvlan;
-  ip link set $OP netns monroe;
+  ip link add link $IF montmp type macvlan;
+  ip link set montmp netns monroe;
+  $MNS ip link set montmp name $OP;
 
   # TODO: do a proper network configuration, or run multi inside the container
   $MNS ifconfig $OP up;
