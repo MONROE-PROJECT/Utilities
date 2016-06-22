@@ -38,8 +38,10 @@ function mk_disk {
         fi
         MNTPNT=$BASEDIR/$1.disk 
       fi
-      mkfs.ext4 $MNTPNT -F -L $1
     fi;
+    if [ -z "$(file -sL $MNTPNT | grep ext4)" ]; then 
+      mkfs.ext4 $MNTPNT -F -L $1
+    fi
     mount -t ext4 $MNTPNT $BASEDIR/$1
   fi
 }
@@ -155,8 +157,9 @@ for IF in $INTERFACES; do
     continue;
   fi
 
-  OP=$(usb2op $IF)
-  ip link add link $IF montmp type macvlan;
+  OP=$(usb2op $IF) || continue
+  ip link del montmp 2>/dev/null || true;
+  ip link add link $IF montmp type macvlan || continue;
   ip link set montmp netns monroe;
   $MNS ip link set montmp name $OP;
 
