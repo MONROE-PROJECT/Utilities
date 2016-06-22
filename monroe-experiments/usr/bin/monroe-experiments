@@ -144,20 +144,20 @@ INTERFACES="usb0 usb1 usb2 wlan0 eth0";
 INTERFACES_PING="op0 op1 op2";
 
 for IF in $INTERFACES; do
+  OP=$(usb2op $IF) || continue
   if [ -z "$(ip link|grep $IF)" ]; then
-    $MNS ip link del $IF 2>/dev/null || true;
+    $MNS ip link del $OP 2>/dev/null || true;
     continue;
   fi
   if [ ! -z "$(ip link|grep 'state DOWN'|grep $IF)" ]; then
-    $MNS ifconfig $IF down 2>/dev/null || true;
+    $MNS ifconfig $OP down 2>/dev/null || true;
     continue;
   fi
-  if [ ! -z "$($MNS ip link|grep $IF)" ]; then
-    $MNS ifconfig $IF up;
+  if [ ! -z "$($MNS ip link|grep $OP)" ]; then
+    $MNS ifconfig $OP up;
     continue;
   fi
 
-  OP=$(usb2op $IF) || continue
   ip link del montmp 2>/dev/null || true;
   ip link add link $IF montmp type macvlan || continue;
   ip link set montmp netns monroe;
