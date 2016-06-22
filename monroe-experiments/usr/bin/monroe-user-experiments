@@ -10,5 +10,6 @@ USER_RSYNC_PARMS="-r --exclude '/*.*' --prune-empty-dirs"
 USER_RSYNC="$USER_RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
 
 eval "rsync --stats $USER_RSYNC"
+mkdir -p $USERDIR
 touch $USERDIR/.keep
 find $USERDIR -depth -type d -empty -delete
