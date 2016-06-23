@@ -86,7 +86,8 @@ for CONTAINER in $(docker ps -aq); do
   if [ "$(docker inspect --format='{{.State.Running}}' $CONTAINER)" == "false" ]; then
     # remove stale containers, unless they are user experiments
     if [[ ! "$(docker inspect --format '{{.Config.Image}}' $CONTAINER)" == "monroe-"* ]]; then
-      docker rm $IMAGEID 2>/dev/null || true;
+      docker rm $CONTAINER || true;
+      docker rmi $IMAGEID || true;
     fi;
   else
     # stop and remove running containers, if their images have been untagged (updated)
