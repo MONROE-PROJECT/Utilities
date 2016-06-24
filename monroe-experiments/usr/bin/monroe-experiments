@@ -121,9 +121,10 @@ if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
 
   # rename the docker bridge interface 'eth0' to 'metadata'
   IP=$($MNS ip route | tail -n 1 | awk '{print $NF}')
-  $MNS ifconfig eth0 down;
+  $MNS ip link set dev eth0 down;
   $MNS ip link set eth0 name metadata;
-  $MNS ifconfig metadata $IP up;
+  $MNS ip link set dev metadata up;
+  $MNS ip a add $IP dev metadata;
 
   logger -t monroe-experiments "Started noop container and monroe netns."
 fi
@@ -150,11 +151,11 @@ for IF in $INTERFACES; do
     continue;
   fi
   if [ ! -z "$(ip link|grep 'state DOWN'|grep $IF)" ]; then
-    $MNS ifconfig $OP down 2>/dev/null || true;
+    $MNS ip link set $OP down 2>/dev/null || true;
     continue;
   fi
   if [ ! -z "$($MNS ip link|grep $OP)" ]; then
-    $MNS ifconfig $OP up;
+    $MNS ip link set $OP up;
     continue;
   fi
 
@@ -164,7 +165,7 @@ for IF in $INTERFACES; do
   $MNS ip link set montmp name $OP;
 
   # TODO: do a proper network configuration, or run multi inside the container
-  $MNS ifconfig $OP up;
+  $MNS ip link set $OP up;
 done
 
 NODEID=$(cat /etc/nodeid)
