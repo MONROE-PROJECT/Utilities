@@ -1,10 +1,11 @@
 #!/bin/bash
  
-## usage: ./usage basedir interface [interface, ...]
+## usage: ./usage basedir sqlprefix interface [interface, ...]
 ## where: basedir = directory to store usage statistics in
 ##        interface = interface to monitor 
 
 BASEDIR=$1
+SQLPREFIX=$2
 MONTH=$(date +%Y-%m)
 DIR=$BASEDIR/$MONTH
 
@@ -17,8 +18,9 @@ function tx {
 
 
 mkdir -p $DIR
+METADATA=$(curl -s http://localhost:88/modems/update)
 
-for IF in "${@:2}"; do
+for IF in "${@:3}"; do
   if [ ! $(rx $IF) ]; then continue; fi
 
   RX=$(rx $IF)
@@ -28,15 +30,28 @@ for IF in "${@:2}"; do
     TXL=$(cat $DIR/$IF.tx.last)
     RXT=$(cat $DIR/$IF.rx.total || echo 0)
     TXT=$(cat $DIR/$IF.tx.total || echo 0)
-    if (($RX > $RXL)); then 
-      RXT=$(($RXT + $RX - $RXL))
-      echo $RXT > $DIR/$IF.rx.total
-    fi
-    if (($TX > $TXL)); then 
-      TXT=$(($TXT + $TX - $TXL))
-      echo $TXT > $DIR/$IF.tx.total
-    fi
+    RXD=$(($RX - $RXL))
+    TXD=$(($TX - $TXL))
+
+    RXT=$(($RXT + $RXD))
+    echo $RXT > $DIR/$IF.rx.total
+    TXT=$(($TXT + $TXD))
+    echo $TXT > $DIR/$IF.tx.total
     echo $(($RXT + $TXT)) > $DIR/$IF.total
+
+    if [ ! -z "$SQLPREFIX" ]; then 
+      if (( $RXD > 0 )) || (( $TXD > 0 )); then 
+        MODEMDATA=$(echo $METADATA | jq -r '.[] | select(.ifname=="'$IF'")')
+        if [ ! -z "$MODEMDATA" ]; then
+          IMEI=$(echo $MODEMDATA | jq -r .imei)
+          ICCID=$(echo $MODEMDATA | jq -r .iccid)
+          IMSI=$(echo $MODEMDATA | jq -r .imsi)
+          NOW=$(date +%s) # TODO: should be start, not end.
+          echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,IntervalStart,RxData,TxData) VALUES('$IMEI','$ICCID','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
+        fi
+      fi 
+    fi 
+
   fi
   echo $RX > $DIR/$IF.rx.last
   echo $TX > $DIR/$IF.tx.last
