@@ -33,23 +33,25 @@ for IF in "${@:3}"; do
     RXD=$(($RX - $RXL))
     TXD=$(($TX - $TXL))
 
-    RXT=$(($RXT + $RXD))
-    echo $RXT > $DIR/$IF.rx.total
-    TXT=$(($TXT + $TXD))
-    echo $TXT > $DIR/$IF.tx.total
-    echo $(($RXT + $TXT)) > $DIR/$IF.total
+    if (( $RXD >= 0 )) && (( $TXD >= 0 )); then 
+      RXT=$(($RXT + $RXD))
+      echo $RXT > $DIR/$IF.rx.total
+      TXT=$(($TXT + $TXD))
+      echo $TXT > $DIR/$IF.tx.total
+      echo $(($RXT + $TXT)) > $DIR/$IF.total
 
-    if [ ! -z "$SQLPREFIX" ]; then 
-      if (( $RXD > 0 )) || (( $TXD > 0 )); then 
-        MODEMDATA=$(echo $METADATA | jq -r '.[] | select(.ifname=="'$IF'")')
-        if [ ! -z "$MODEMDATA" ]; then
-          IMEI=$(echo $MODEMDATA | jq -r .imei)
-          ICCID=$(echo $MODEMDATA | jq -r .iccid)
-          IMSI=$(echo $MODEMDATA | jq -r .imsi)
-          NOW=$(date +%s) # TODO: should be start, not end.
-          echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,IntervalStart,RxData,TxData) VALUES('$IMEI','$ICCID','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
-        fi
-      fi 
+      if [ ! -z "$SQLPREFIX" ]; then 
+        if (( $RXD > 0 )) || (( $TXD > 0 )); then 
+          MODEMDATA=$(echo $METADATA | jq -r '.[] | select(.ifname=="'$IF'")')
+          if [ ! -z "$MODEMDATA" ]; then
+            IMEI=$(echo $MODEMDATA | jq -r .imei)
+            ICCID=$(echo $MODEMDATA | jq -r .iccid)
+            IMSI=$(echo $MODEMDATA | jq -r .imsi)
+            NOW=$(date +%s) # TODO: should be start, not end.
+            echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,IntervalStart,RxData,TxData) VALUES('$IMEI','$ICCID','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
+          fi
+        fi 
+      fi
     fi 
 
   fi
