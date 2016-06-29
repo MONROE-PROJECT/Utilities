@@ -1,0 +1,14 @@
+#!/bin/bash
+
+export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /etc/default/monroe-experiments
+
+docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  
+
+docker pull $URL_NOOP
+docker pull $URL_BASE
+docker pull $URL_PING
+docker pull $URL_HTTP
+docker pull $URL_METADATA
+docker pull $URL_MPLANE

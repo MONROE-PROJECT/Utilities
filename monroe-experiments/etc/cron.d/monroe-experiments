@@ -2,4 +2,5 @@
 # sync monroe experiments, ensuring they are running
 
 */1 * * * *   root    /usr/bin/monroe-experiments
+27 */4 * * *   root    /usr/bin/pull-base-containers
 

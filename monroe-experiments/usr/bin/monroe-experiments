@@ -111,7 +111,6 @@ if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any multi client running in that namespace
   pgrep -f multi-netns-monroe | xargs -r kill
 
-  docker pull $URL_NOOP 2> /dev/null;
   docker run -d --net=bridge $URL_NOOP;
   CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
   PID=$(docker inspect -f '{{.State.Pid}}' $CID)
@@ -173,9 +172,6 @@ NODEID=$(cat /etc/nodeid)
 for IF in $INTERFACES_PING; do
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep $URL_PING|grep $IF)" ]; then
-      docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
-      docker pull $URL_PING 2> /dev/null                || true;  # if the pull fails, try a local copy
-
       COUNT=$(cat $BASEDIR/ping.counter 2>/dev/null || echo 0)
       COUNT=$(($COUNT + 1))
       echo $COUNT > $BASEDIR/ping.counter
@@ -193,16 +189,12 @@ for IF in $INTERFACES_PING; do
 done
 
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
-  docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO  &&
-  docker pull $URL_METADATA 2> /dev/null            || true;
-
   echo "{\"nodeid\":\"$NODEID\"}" > $BASEDIR/metadata.conf
   docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro $URL_METADATA || true;
   logger -t monroe-experiments "started metadata container.";
 fi
 
 if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
-  docker pull $URL_MPLANE 2> /dev/null || true;
   mkdir -p $BASEDIR/tstat # shared folder for tstat results
   docker run -d --net=container:$CID \
              -v $BASEDIR/mplane:/monroe/results \
