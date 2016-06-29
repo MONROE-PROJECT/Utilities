@@ -200,7 +200,7 @@ if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
              -v $BASEDIR/mplane:/monroe/results \
              -v $BASEDIR/tstat:/monroe/tstat    \
              -v /etc/nodeid:/nodeid:ro \
-             $URL_MPLANE $MPLANE_PASSWORD || true;
+             $URL_MPLANE || true;
   logger -t monroe-experiments "started mplane container.";
 fi
 
