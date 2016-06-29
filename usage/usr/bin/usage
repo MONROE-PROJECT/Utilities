@@ -40,20 +40,25 @@ for IF in "${@:3}"; do
       echo $TXT > $DIR/$IF.tx.total
       echo $(($RXT + $TXT)) > $DIR/$IF.total
 
-      EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
-      #TODO: identify active experiment, if there are several
-      if [ ! -z "$EXPERIMENT" ]; then 
-        mkdir -p $BASEDIR/$EXPERIMENT
-        EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IF.rx.total || echo 0)
-        EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IF.tx.total || echo 0)
-        EXT=$(cat $BASEDIR/$EXPERIMENT/$IF.total || echo 0)
-        echo $(($EXRXT + $RXD)) > $BASEDIR/$EXPERIMENT/$IF.rx.total
-        echo $(($EXTXT + $TXD)) > $BASEDIR/$EXPERIMENT/$IF.tx.total
-        echo $(($EXT + $RXD + $TXD)) > $BASEDIR/$EXPERIMENT/$IF.total
-      fi
-
       if [ ! -z "$SQLPREFIX" ]; then 
         if (( $RXD > 0 )) || (( $TXD > 0 )); then 
+
+          # NOTE: SQLPrefix is set only for the experiment namespace, to 
+          # report data usage not captured by network listener
+          # We use this condition to report to SQL and the experiment folder
+
+          EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
+          # TODO: identify active experiment, if there are several
+          if [ ! -z "$EXPERIMENT" ]; then 
+            mkdir -p $BASEDIR/$EXPERIMENT
+            EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IF.rx.total || echo 0)
+            EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IF.tx.total || echo 0)
+            EXT=$(cat $BASEDIR/$EXPERIMENT/$IF.total || echo 0)
+            echo $(($EXRXT + $RXD)) > $BASEDIR/$EXPERIMENT/$IF.rx.total
+            echo $(($EXTXT + $TXD)) > $BASEDIR/$EXPERIMENT/$IF.tx.total
+            echo $(($EXT + $RXD + $TXD)) > $BASEDIR/$EXPERIMENT/$IF.total
+          fi
+
           MODEMDATA=$(echo $METADATA | jq -r '.[] | select(.ifname=="'$IF'")')
           if [ ! -z "$MODEMDATA" ]; then
             IMEI=$(echo $MODEMDATA | jq -r .imei)
