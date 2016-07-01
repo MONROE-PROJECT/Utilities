@@ -1,0 +1,9 @@
+# $1 = target interface
+# $2 = target address range triple (e.g. 192.168.1)
+
+ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
+MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
+TARGET=$2
+
+# set the network range
+curl -X POST --interface $1 'http://'$MODEM'/goform/goform_set_cmd_process' -d 'isTest=false&goformId=DHCP_SETTING&lanIp='$TARGET'.1&lanNetmask=255.255.255.0&lanDhcpType=SERVER&dhcpStart='$TARGET'.100&dhcpEnd='$TARGET'.200&dhcpLease=24&dhcp_reboot_flag=1' -H 'Referer: http://'$MODEM'/index.html'

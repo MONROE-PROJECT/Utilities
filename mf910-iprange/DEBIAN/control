@@ -1,0 +1,9 @@
+Package: mf910-iprange
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/mf910-iprange
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: switch network IP range on MF910 modems
