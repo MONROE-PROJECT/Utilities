@@ -12,8 +12,10 @@ else
   for IF in "usb0" "usb1" "usb2"; do
     CHARGE=-1;
     CHARGING=0;
-    if [ ! -z "$(ifconfig $IF 2>/dev/null|grep 'inet addr')" ]; then
-      DATA=$(curl -s 'http://192.168.0.1/goform/goform_get_cmd_process?multi_data=1&cmd=battery_charging%2Cbattery_vol_percent' -H 'Referer: http://192.168.0.1/index.html' --interface $IF);
+    ADDRESS=$(ip -f inet -o addr show $IF 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
+    if [ ! -z "$ADDRESS" ]; then
+      MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
+      DATA=$(curl -s 'http://'$MODEM'/goform/goform_get_cmd_process?multi_data=1&cmd=battery_charging%2Cbattery_vol_percent' -H 'Referer: http://'$MODEM'/index.html' --interface $IF);
       if [ ! -z "$(echo $DATA|grep charging)" ]; then
         CHARGE=$(echo $DATA|jq -r '.battery_vol_percent');
         CHARGING=$(echo $DATA|jq -r '.battery_charging');
