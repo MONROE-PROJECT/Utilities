@@ -3,5 +3,5 @@
 
 */1 * * * *   root  /usr/bin/monroe-experiments
 27 */4 * * *  root  /usr/bin/pull-base-containers
-@reboot       root  /bin/rm /var/lock/monroe-experiments || true 
+@reboot       root  /bin/rm /var/lock/monroe-experiments.lock || true 
 
