@@ -1,6 +1,7 @@
 # /etc/cron.d/monroe-experiments
 # sync monroe experiments, ensuring they are running
 
-*/1 * * * *   root    /usr/bin/monroe-experiments
-27 */4 * * *   root    /usr/bin/pull-base-containers
+*/1 * * * *   root  /usr/bin/monroe-experiments
+27 */4 * * *  root  /usr/bin/pull-base-containers
+@reboot       root  /bin/rm /var/lock/monroe-experiments || true 
 
