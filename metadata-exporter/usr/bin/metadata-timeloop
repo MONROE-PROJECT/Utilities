@@ -43,25 +43,26 @@ do
     # INSERT before UPDATE). We might get problems if the same router reboots many
     # times and we dont have a proper clock, but we will be saved by update
     BEFORE_TIME=$(date '+%s')
-    $RSYNC_PATH -t --remove-source-files --stats --timeout=30 -e "ssh -i $META_KEY_PATH -p $RSYNC_DST_PORT -o StrictHostKeychecking=no -o ConnectTimeout=30" $RSYNC_LOCAL \
+    $RSYNC_PATH -t --remove-source-files -z --timeout=30 -e "ssh -i $META_KEY_PATH -p $RSYNC_DST_PORT -o StrictHostKeychecking=no -o ConnectTimeout=30" $RSYNC_LOCAL \
         $RSYNC_REMOTE_PREFIX/$CWY_VER/$CWY_NODEID/
     RETVAL=$?
     AFTER_TIME=$(date '+%s')
 
-    if [ $RETVAL -ne 0 ]
-    then
-        logger -t metadata_exporter "Copying metadata failed with code $RETVAL"
-        OTHERFILES=$(ls -dthr $RSYNC_LOCAL_ 2>/dev/null|tail -n +2)
-        if [ ! -z "$OTHERFILES" ]
-        then
-            FIRSTFILE=$(ls -dthr $RSYNC_LOCAL_ 2>/dev/null |head -n 1)
-            FILECOUNT=$(ls $OTHERFILES|wc -l)
-            cat $OTHERFILES >> $FIRSTFILE &&
-            rm $OTHERFILES                &&  #only if successful
-            logger -t metadata_exporter "Appended $FILECOUNT metadata files to $FIRSTFILE"
-        fi
-    else
-        # logger -t metadata_exporter "Done copying files to server"
+    #if [ $RETVAL -ne 0 ]
+    #then
+    #    logger -t metadata_exporter "Copying metadata failed with code $RETVAL"
+    #    OTHERFILES=$(ls -dthr $RSYNC_LOCAL_ 2>/dev/null|tail -n +2)
+    #    if [ ! -z "$OTHERFILES" ]
+    #    then
+    #        FIRSTFILE=$(ls -dthr $RSYNC_LOCAL_ 2>/dev/null |head -n 1)
+    #        FILECOUNT=$(ls $OTHERFILES|wc -l)
+    #        cat $OTHERFILES >> $FIRSTFILE &&
+    #        rm $OTHERFILES                &&  #only if successful
+    #        logger -t metadata_exporter "Appended $FILECOUNT metadata files to $FIRSTFILE"
+    #    fi
+    #else
+    #    # logger -t metadata_exporter "Done copying files to server"
+    if [ $RETVAL -eq 0 ]; then 
         date +%s > /tmp/last_meta_export
     fi
 
