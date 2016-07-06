@@ -5,15 +5,6 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 . /etc/default/monroe-experiments
 
-SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
-RSYNC_PARMS="-r --exclude 'tstat/' --include '*/' --include '*.json' --include '*.gz' --exclude '*' --prune-empty-dirs"
-RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --stats --timeout=30 $BASEDIR/ $REPO:$TODIR"
-RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
-
-USER_RSYNC_PARMS="-r --exclude '/*.*' --prune-empty-dirs"
-USER_RSYNC="$USER_RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
-
-
 function mk_disk {
   mkdir -p $BASEDIR/$1
   if mountpoint -q $BASEDIR/$1; then
