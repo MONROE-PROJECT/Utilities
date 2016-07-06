@@ -46,20 +46,6 @@ function mk_disk {
   fi
 }
 
-function merge {
-  ALLFILES=$(find $1 -type f -name \*.json)
-  TMPMERGEFILE=$(mktemp --tmpdir=$1)
-  FILECOUNT=$(echo ${ALLFILES} |grep -o '.json'|wc -l)
-  if [ $FILECOUNT -ge 2 ]; then
-    base=$(echo ${ALLFILES} | cut -f 1-2 -d . | rev |  cut -d / -f 1 | rev)
-    MERGEDFILE="$1/${base}_merged_$(date +%s).json"
-    cat ${ALLFILES} >> ${TMPMERGEFILE} &&
-    mv ${TMPMERGEFILE} ${MERGEDFILE} &&
-    rm ${ALLFILES}                &&  # only if successful
-    logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
-    rm -f ${TMPMERGEFILE} # If step mv (or rm) failed above, always delete the tmpmergefile
-  fi;
-}
 
 ##############################################################################
 
@@ -159,11 +145,9 @@ for IF in $INTERFACES; do
   fi
 
   ip link del montmp 2>/dev/null || true;
-  ip link add link $IF montmp type macvlan || continue;
+  ip link add link $IF montmp type macvlan mode bridge || continue;
   ip link set montmp netns monroe;
   $MNS ip link set montmp name $OP;
-
-  # TODO: do a proper network configuration, or run multi inside the container
   $MNS ip link set $OP up;
 done
 
@@ -204,14 +188,5 @@ if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
   logger -t monroe-experiments "started mplane container.";
 fi
 
-echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
-echo rsync $RSYNC_ALL
-if eval "rsync --stats $RSYNC_ALL"; then
-  echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files arrived while syncing.";
-else
-  logger -t monroe-experiments "Copying experiment data failed.";
-  merge $BASEDIR/ping;
-  merge $BASEDIR/metadata;
-fi
-
-monroe-user-experiments
+monroe-rsync-results     || true
+monroe-user-experiments  || true

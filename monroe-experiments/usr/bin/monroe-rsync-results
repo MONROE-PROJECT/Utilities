@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /etc/default/monroe-experiments
+
+SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
+RSYNC_PARMS="-r --exclude 'tstat/' --include '*/' --include '*.json' --include '*.gz' --exclude '*' --prune-empty-dirs"
+RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --stats --timeout=30 $BASEDIR/ $REPO:$TODIR"
+RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
+
+USER_RSYNC_PARMS="-r --exclude '/*.*' --prune-empty-dirs"
+USER_RSYNC="$USER_RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
+
+function merge {
+  ALLFILES=$(find $1 -type f -name \*.json)
+  TMPMERGEFILE=$(mktemp --tmpdir=$1)
+  FILECOUNT=$(echo ${ALLFILES} |grep -o '.json'|wc -l)
+  if [ $FILECOUNT -ge 2 ]; then
+    base=$(echo ${ALLFILES} | cut -f 1-2 -d . | rev |  cut -d / -f 1 | rev)
+    MERGEDFILE="$1/${base}_merged_$(date +%s).json"
+    cat ${ALLFILES} >> ${TMPMERGEFILE} &&
+    mv ${TMPMERGEFILE} ${MERGEDFILE} &&
+    rm ${ALLFILES}                &&  # only if successful
+    logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
+    rm -f ${TMPMERGEFILE} # If step mv (or rm) failed above, always delete the tmpmergefile
+  fi;
+}
+
+echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
+echo rsync $RSYNC_ALL
+if eval "rsync --stats $RSYNC_ALL"; then
+  echo "rsync done, $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files arrived while syncing.";
+else
+  logger -t monroe-experiments "Copying experiment data failed.";
+  merge $BASEDIR/ping;
+  merge $BASEDIR/metadata;
+fi
