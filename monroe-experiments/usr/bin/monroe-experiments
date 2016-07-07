@@ -2,6 +2,7 @@
 set -e
 
 export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PING_TARGET=193.10.227.25 # may be overwritten by defaults
 
 . /etc/default/monroe-experiments
 
@@ -155,6 +156,7 @@ for IF in $INTERFACES_PING; do
       
       echo "{\"nodeid\":\"$NODEID\", \
              \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
+             \"server\":\"$PING_TARGET\", \
              \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
 
       docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro $URL_PING $IF || true;
