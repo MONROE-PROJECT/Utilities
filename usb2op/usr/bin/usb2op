@@ -30,6 +30,7 @@ operators = {
   "Orange Internet Móvil": "op0",
   "YOIGO": "op1",
 
+  "TelenorS": "op0",
   "Telenor SE": "op0",
   "Telia": "op1",
   "3 SE": "op2",
