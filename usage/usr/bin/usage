@@ -51,6 +51,10 @@ for IF in "${@:3}"; do
           # TODO: identify active experiment, if there are several
           if [ ! -z "$EXPERIMENT" ]; then 
             mkdir -p $BASEDIR/$EXPERIMENT
+            ICCID=$(curl -s http://localhost:88/modems|jq -r '.[] | select(.ifname=="'$IF'") | .iccid ')
+            if [ ! -z "$ICCID"]; then
+              IF=$ICCID
+            fi
             EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IF.rx.total || echo 0)
             EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IF.tx.total || echo 0)
             EXT=$(cat $BASEDIR/$EXPERIMENT/$IF.total || echo 0)
