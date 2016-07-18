@@ -137,7 +137,11 @@ for IF in $INTERFACES; do
   fi
 
   ip link del montmp 2>/dev/null || true;
-  ip link add link $IF montmp type macvlan mode bridge || continue;
+  if [ "$IF" -eq "eth0" ]; then
+    ip link add link $IF montmp type macvlan mode bridge || continue;
+  else
+    ip link add link $IF montmp type macvlan mode passthru || continue;
+  fi
   ip link set montmp netns monroe;
   $MNS ip link set montmp name $OP;
   $MNS ip link set $OP up;
