@@ -1,0 +1,7 @@
+Package: drivers-net-usb
+Version: 4.6.0-0.bpo.1
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Description: Kernel module updates for cdc_ether and rndis_host that set random mac addresses on MF910 modems
