@@ -37,6 +37,7 @@ operators = {
 
   "TelenorS": "op0",
   "Telenor SE": "op0",
+  "Weblink": "op0",
   "Telia": "op1",
   "3 SE": "op2",
 }
