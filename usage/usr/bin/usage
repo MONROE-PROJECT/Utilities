@@ -12,13 +12,6 @@ SQLPREFIX=$2
 MONTH=$(date +%Y-%m)
 DIR=$BASEDIR/$MONTH
 
-function rx {
-  cat /sys/class/net/$1/statistics/rx_bytes
-}
-function tx {
-  cat /sys/class/net/$1/statistics/tx_bytes
-}
-
 mkdir -p $DIR
 MODEMS=$(curl -s http://localhost:88/modems/update)
 DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
@@ -45,8 +38,8 @@ for IF in "${@:3}"; do
     MNS="ip netns exec monroe"
   fi;
 
-  RX=$($MNS rx $IF)
-  TX=$($MNS tx $IF)
+  RX=$($MNS cat /sys/class/net/$IF/statistics/rx_bytes)
+  TX=$($MNS cat /sys/class/net/$IF/statistics/tx_bytes)
   if [ -f $DIR/$IM.rx.last ]; then 
     RXL=$(cat $DIR/$IM.rx.last)
     TXL=$(cat $DIR/$IM.tx.last)
