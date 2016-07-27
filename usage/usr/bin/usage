@@ -17,7 +17,7 @@ MODEMS=$(curl -s http://localhost:88/modems/update)
 DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
 
 for IF in "${@:3}"; do
-  if [ ! $(rx $IF) ]; then continue; fi
+  if [ ! -f /sys/class/net/$IF/statistics/rx_bytes ]; then continue; fi
   DLBDATA=$(echo $DLB | jq -r '. | select(.name=="'$IF'")')
   MODEMDATA=$(echo $MODEMS | jq -r '.[] | select(.ifname=="'$IF'")')
   IM=$(echo $DLBDATA | jq -r '.iccid // empty')
