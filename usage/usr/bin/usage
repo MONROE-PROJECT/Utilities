@@ -35,16 +35,18 @@ for IF in "${@:3}"; do
     continue
   fi
 
+  MNS=""
   if [ ! -z "$SQLPREFIX" ]; then 
     OP=$(usb2op $IF)
     if [ -z "$OP" ]; then
       continue
     fi
     IF=$OP
+    MNS="ip netns exec monroe"
   fi;
 
-  RX=$(rx $IF)
-  TX=$(tx $IF)
+  RX=$($MNS rx $IF)
+  TX=$($MNS tx $IF)
   if [ -f $DIR/$IM.rx.last ]; then 
     RXL=$(cat $DIR/$IM.rx.last)
     TXL=$(cat $DIR/$IM.tx.last)

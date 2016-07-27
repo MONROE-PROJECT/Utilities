@@ -2,4 +2,4 @@
 # record data usage on relevant interfaces and namespaces
 
 */1 * * * *   root    /usr/bin/usage /monroe/usage '' eth0 wlan0 wlan1 usb0 usb1 usb2 wwan0 wwan1 wwan2
-*/1 * * * *   root    /sbin/ip netns exec monroe /usr/bin/usage /monroe/usage/netns /tmp/metadata-usage-monroe eth0 wlan0 wlan1 usb0 usb1 usb2 
+*/1 * * * *   root    /usr/bin/usage /monroe/usage/netns /tmp/metadata-usage-monroe eth0 wlan0 wlan1 usb0 usb1 usb2 
