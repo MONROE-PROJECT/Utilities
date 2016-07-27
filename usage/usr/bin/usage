@@ -4,6 +4,9 @@
 ## where: basedir = directory to store usage statistics in
 ##        interface = interface to monitor 
 
+## TODO: refactoring - currently, this is the same script in monroe and host netns, 
+## but the mapping op0-iccid is only possible by mixing both with ip netns exec.
+
 BASEDIR=$1
 SQLPREFIX=$2
 MONTH=$(date +%Y-%m)
@@ -16,29 +19,46 @@ function tx {
   cat /sys/class/net/$1/statistics/tx_bytes
 }
 
-
 mkdir -p $DIR
-METADATA=$(curl -s http://localhost:88/modems/update)
+MODEMS=$(curl -s http://localhost:88/modems/update)
+DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
 
 for IF in "${@:3}"; do
   if [ ! $(rx $IF) ]; then continue; fi
+  DLBDATA=$(echo $DLB | jq -r '. | select(.name=="'$IF'")')
+  MODEMDATA=$(echo $MODEMS | jq -r '.[] | select(.ifname=="'$IF'")')
+  IM=$(echo $DLBDATA | jq -r '.iccid // empty')
+  if [ -z "$IM" ]; then
+    IM=$(echo $DLBDATA | jq -r '.mac // empty')
+  fi
+  if [ -z "$IM" ]; then
+    continue
+  fi
+
+  if [ ! -z "$SQLPREFIX" ]; then 
+    OP=$(usb2op $IF)
+    if [ -z "$OP" ]; then
+      continue
+    fi
+    IF=$OP
+  fi;
 
   RX=$(rx $IF)
   TX=$(tx $IF)
-  if [ -f $DIR/$IF.rx.last ]; then 
-    RXL=$(cat $DIR/$IF.rx.last)
-    TXL=$(cat $DIR/$IF.tx.last)
-    RXT=$(cat $DIR/$IF.rx.total || echo 0)
-    TXT=$(cat $DIR/$IF.tx.total || echo 0)
+  if [ -f $DIR/$IM.rx.last ]; then 
+    RXL=$(cat $DIR/$IM.rx.last)
+    TXL=$(cat $DIR/$IM.tx.last)
+    RXT=$(cat $DIR/$IM.rx.total || echo 0)
+    TXT=$(cat $DIR/$IM.tx.total || echo 0)
     RXD=$(($RX - $RXL))
     TXD=$(($TX - $TXL))
 
     if (( $RXD >= 0 )) && (( $TXD >= 0 )); then 
       RXT=$(($RXT + $RXD))
-      echo $RXT > $DIR/$IF.rx.total
+      echo $RXT > $DIR/$IM.rx.total
       TXT=$(($TXT + $TXD))
-      echo $TXT > $DIR/$IF.tx.total
-      echo $(($RXT + $TXT)) > $DIR/$IF.total
+      echo $TXT > $DIR/$IM.tx.total
+      echo $(($RXT + $TXT)) > $DIR/$IM.total
 
       if [ ! -z "$SQLPREFIX" ]; then 
         if (( $RXD > 0 )) || (( $TXD > 0 )); then 
@@ -49,36 +69,31 @@ for IF in "${@:3}"; do
 
           EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
           # TODO: identify active experiment, if there are several
+
           if [ ! -z "$EXPERIMENT" ]; then 
             mkdir -p $BASEDIR/$EXPERIMENT
-            ICCID=$(curl -s http://localhost:88/modems|jq -r '.[] | select(.ifname=="'$IF'") | .iccid ')
-            if [ ! -z "$ICCID"]; then
-              IF=$ICCID
-            fi
-            EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IF.rx.total || echo 0)
-            EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IF.tx.total || echo 0)
-            EXT=$(cat $BASEDIR/$EXPERIMENT/$IF.total || echo 0)
-            echo $(($EXRXT + $RXD)) > $BASEDIR/$EXPERIMENT/$IF.rx.total
-            echo $(($EXTXT + $TXD)) > $BASEDIR/$EXPERIMENT/$IF.tx.total
-            echo $(($EXT + $RXD + $TXD)) > $BASEDIR/$EXPERIMENT/$IF.total
+            EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IM.rx.total || echo 0)
+            EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IM.tx.total || echo 0)
+            EXT=$(cat $BASEDIR/$EXPERIMENT/$IM.total || echo 0)
+            echo $(($EXRXT + $RXD)) > $BASEDIR/$EXPERIMENT/$IM.rx.total
+            echo $(($EXTXT + $TXD)) > $BASEDIR/$EXPERIMENT/$IM.tx.total
+            echo $(($EXT + $RXD + $TXD)) > $BASEDIR/$EXPERIMENT/$IM.total
           fi
 
-          MODEMDATA=$(echo $METADATA | jq -r '.[] | select(.ifname=="'$IF'")')
           if [ ! -z "$MODEMDATA" ]; then
             IMEI=$(echo $MODEMDATA | jq -r .imei)
-            ICCID=$(echo $MODEMDATA | jq -r .iccid)
             IMSI=$(echo $MODEMDATA | jq -r .imsi)
             NOW=$(date +%s) # TODO: should be start, not end.
-            #echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,IntervalStart,RxData,TxData) VALUES('$IMEI','$ICCID','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
+            echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,IntervalStart,RxData,TxData) VALUES('$IMEI','$ICCID','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
           fi
         fi 
       fi
     fi 
 
   fi
-  echo $RX > $DIR/$IF.rx.last
-  echo $TX > $DIR/$IF.tx.last
-  cp $DIR/$IF.rx.total $BASEDIR/$IF.rx.total
-  cp $DIR/$IF.tx.total $BASEDIR/$IF.tx.total
-  cp $DIR/$IF.total $BASEDIR/$IF.total
+  echo $RX > $DIR/$IM.rx.last
+  echo $TX > $DIR/$IM.tx.last
+  cp $DIR/$IM.rx.total $BASEDIR/$IM.rx.total
+  cp $DIR/$IM.tx.total $BASEDIR/$IM.tx.total
+  cp $DIR/$IM.total $BASEDIR/$IM.total
 done
