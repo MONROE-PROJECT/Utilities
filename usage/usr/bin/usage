@@ -40,6 +40,8 @@ for IF in "${@:3}"; do
 
   RX=$($MNS cat /sys/class/net/$IF/statistics/rx_bytes)
   TX=$($MNS cat /sys/class/net/$IF/statistics/tx_bytes)
+  if [ -z "$RX"]; then continue; fi
+
   if [ -f $DIR/$IM.rx.last ]; then 
     RXL=$(cat $DIR/$IM.rx.last)
     TXL=$(cat $DIR/$IM.tx.last)
