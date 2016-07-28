@@ -4,9 +4,6 @@
 ## where: basedir = directory to store usage statistics in
 ##        interface = interface to monitor 
 
-## TODO: refactoring - currently, this is the same script in monroe and host netns, 
-## but the mapping op0-iccid is only possible by mixing both with ip netns exec.
-
 BASEDIR=$1
 SQLPREFIX=$2
 MONTH=$(date +%Y-%m)
@@ -15,6 +12,14 @@ DIR=$BASEDIR/$MONTH
 mkdir -p $DIR
 MODEMS=$(curl -s http://localhost:88/modems/update)
 DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
+
+## Identify active running experiment to monitor individual quotas
+EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
+## TODO: identify active experiment, if there are several
+if [ ! -z "$EXPERIMENT" ]; then 
+  SCHEDID=${EXPERIMENT##*-}
+  EXCONFIG=$(cat /experiments/user/$SCHEDID.conf 2>/dev/null)
+fi
 
 for IF in "${@:3}"; do
   if [ ! -f /sys/class/net/$IF/statistics/rx_bytes ]; then continue; fi
@@ -64,8 +69,6 @@ for IF in "${@:3}"; do
           # report data usage not captured by network listener
           # We use this condition to report to SQL and the experiment folder
 
-          EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
-          # TODO: identify active experiment, if there are several
 
           if [ ! -z "$EXPERIMENT" ]; then 
             mkdir -p $BASEDIR/$EXPERIMENT
@@ -74,7 +77,16 @@ for IF in "${@:3}"; do
             EXT=$(cat $BASEDIR/$EXPERIMENT/$IM.total || echo 0)
             echo $(($EXRXT + $RXD)) > $BASEDIR/$EXPERIMENT/$IM.rx.total
             echo $(($EXTXT + $TXD)) > $BASEDIR/$EXPERIMENT/$IM.tx.total
-            echo $(($EXT + $RXD + $TXD)) > $BASEDIR/$EXPERIMENT/$IM.total
+            EXTOTAL=$(($EXT + $RXD + $TXD))
+            echo $EXTOTAL > $BASEDIR/$EXPERIMENT/$IM.total
+
+            if [ ! -z "$EXCONFIG" ] && [[ $IF == *"op"* ]]; then
+              TRAFFICQ=$(cat $EXCONFIG | jq .traffic)
+              if (( $EXTOTAL > $TRAFFICQ )); then
+                docker stop -t 0 $EXPERIMENT
+                echo "quota exceeded on interface $IM ($IF)." >> /experiments/user/$SCHEDID/container.stat
+              fi
+            fi
           fi
 
           if [ ! -z "$MODEMDATA" ]; then
