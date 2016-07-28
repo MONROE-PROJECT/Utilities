@@ -56,14 +56,17 @@ if queried is None:
   logger.info(json.dumps(tags))
   sys.exit(1)
 
-def browse_siblings(siblings, taglist):
+def browse_siblings(siblings, taglist, browsed=[]):
   for sibling in siblings:
+    if sibling in browsed:
+      continue
+    browsed.append(sibling)
     tags = layers.get(sibling).get('Tags')
     if tags is not None:
       taglist.append(tags)
     kids = children.get(sibling)
     if kids is not None:
-      taglist.extend(browse_siblings(kids, []))
+      taglist.extend(browse_siblings(kids, [], browsed))
   return taglist
 
 sizes = 0
