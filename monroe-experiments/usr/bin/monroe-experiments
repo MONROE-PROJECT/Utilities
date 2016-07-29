@@ -50,7 +50,7 @@ exec 42>/var/lock/monroe-experiments.lock
 flock -n 42 || {
   logger -t monroe-experiments "lock file present";
   LOCKAGE=$(cat /tmp/monroe-experiments.last || echo 0)
-  if (( $LOCKAGE - $(date +%s) > 600 )); then
+  if (( $(date +%s) - $LOCKAGE > 600 )); then
     rm /var/lock/monroe-experiments.lock;
   fi
   exit 1;
