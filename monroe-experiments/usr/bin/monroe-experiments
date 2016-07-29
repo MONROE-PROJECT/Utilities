@@ -49,6 +49,10 @@ fi
 exec 42>/var/lock/monroe-experiments.lock
 flock -n 42 || {
   logger -t monroe-experiments "lock file present";
+  LOCKAGE=$(cat /tmp/monroe-experiments.last || echo 0)
+  if (( $LOCKAGE - $(date +%s) > 600 )); then
+    rm /var/lock/monroe-experiments.lock;
+  fi
   exit 1;
 }
 trap "flock -u 42" EXIT
@@ -184,3 +188,5 @@ fi
 
 monroe-rsync-results     || true
 monroe-user-experiments  || true
+
+echo $(date +%s) > /tmp/monroe-experiments.last
