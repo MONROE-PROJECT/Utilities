@@ -47,13 +47,13 @@ for image in images:
     parent = digest
 
 # check if a tag is provided (: may be used for port numbers)
-if "/" in url.split(":")[-1]:
+if "/" in url.split(":")[-1] or not ":" in url:
   url = url + ":latest"
 
 queried = tags.get(url)
 if queried is None:
   logger.error("%s was not found in tags list." % url)
-  logger.info(json.dumps(tags))
+  logger.error(json.dumps(tags))
   sys.exit(1)
 
 def browse_siblings(siblings, taglist, browsed=[]):
