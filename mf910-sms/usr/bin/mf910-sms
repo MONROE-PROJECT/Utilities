@@ -37,7 +37,7 @@ for i in $(seq 0 $(($LEN - 1))); do
   echo -n "Date: "
   echo $MSG|jq -r .date
   echo -n "Content: "
-  echo $MSG|jq -r .content | xxd -r -p
+  echo $MSG|jq -r .content | xxd -r -p | iconv -f utf-16be
   echo; echo
 done
 
