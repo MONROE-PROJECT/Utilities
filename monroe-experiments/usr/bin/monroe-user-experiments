@@ -7,9 +7,15 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 USER_RSYNC_PARMS="-r -z --exclude '/*.*' --prune-empty-dirs"
-USER_RSYNC="$USER_RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
+USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
 
-eval "rsync $USER_RSYNC"
+STATS=$(eval "rsync $USER_RSYNC")
+SENT=$(echo "$STATS"|grep 'sent:'|sed -e 's/.*: //g')
+RECV=$(echo "$STATS"|grep 'received:'|sed -e 's/.*: //g')
+TOTAL=$(($SENT + $RECV))
+
+echo "$SENT sent, $RECV received, $TOTAL total."
+
 mkdir -p $USERDIR
 touch $USERDIR/.keep
 find $USERDIR -depth -type d -empty -delete
