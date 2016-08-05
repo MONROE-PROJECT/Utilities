@@ -12,6 +12,21 @@ DATA=$(curl -s -X GET --interface $1 'http://'$MODEM'/goform/goform_get_cmd_proc
 
 LEN=$(echo $DATA | jq '.messages | length')
 
+if [[ "$DELETE" = "delete" ]]; then
+  for i in $(seq 0 $(($LEN - 1))); do
+    MSG=$(echo $DATA | jq ".messages[$i]")
+
+    THISID=$(echo $MSG|jq -r .id)
+    if [[ "$MSGID" = "all" ]] || [[ "$MSGID" -eq "THISID" ]]; then
+
+      echo "Deleting message $THISID:"
+      curl -s -X POST --interface $1 'http://'$MODEM'/goform/goform_set_cmd_process' -d 'isTest=false&goformId=DELETE_SMS&msg_id='$MSGID'&notCallback=true' -H 'Referer: http://'$MODEM'/index.html'
+
+    fi
+  done
+  exit 0
+fi
+
 echo --$LEN messages--
 for i in $(seq 0 $(($LEN - 1))); do
   MSG=$(echo $DATA | jq ".messages[$i]")
