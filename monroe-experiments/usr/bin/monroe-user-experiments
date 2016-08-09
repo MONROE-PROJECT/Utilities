@@ -7,14 +7,28 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 USER_RSYNC_PARMS="-r -z --exclude '/*.*' --prune-empty-dirs"
-USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --remove-source-files --timeout=30 $USERDIR/ $USER_REPO:$USER_TODIR"
+USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --remove-source-files --timeout=30"
 
-STATS=$(eval "rsync $USER_RSYNC")
-SENT=$(echo "$STATS"|grep 'sent:'|sed -e 's/.*: //g')
-RECV=$(echo "$STATS"|grep 'received:'|sed -e 's/.*: //g')
-TOTAL=$(($SENT + $RECV))
+for f in $USERDIR/*; do
+  if [ ! -d "$f" ]; then continue; fi
 
-echo "$SENT sent, $RECV received, $TOTAL total."
+  echo "Syncing $f"
+  BASENAME=$(basename "$f")
+  STATS=$(eval "rsync $USER_RSYNC $f/ $USER_REPO:$USER_TODIR/$BASENAME")
+  SENT=$(echo "$STATS"|grep 'sent:'|sed -e 's/.*: //g')
+  RECV=$(echo "$STATS"|grep 'received:'|sed -e 's/.*: //g')
+  TOTAL=$(($SENT + $RECV))
+
+  echo "$SENT sent, $RECV received, $TOTAL total."
+
+  if [ -f "$USERDIR/$BASENAME.traffic" ]; then 
+    TRAFFIC=$(cat $USERDIR/$BASENAME.traffic)
+    RESULTS=$(echo $TRAFFIC | jq -r '.results // 0')
+    RESULTS=$(( $RESULTS + $TOTAL ))
+    echo $TRAFFIC | jq ".results=$RESULTS" > $USERDIR/$BASENAME.traffic
+  fi
+
+done
 
 mkdir -p $USERDIR
 touch $USERDIR/.keep
