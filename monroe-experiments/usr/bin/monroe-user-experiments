@@ -13,19 +13,29 @@ for f in $USERDIR/*; do
   if [ ! -d "$f" ]; then continue; fi
 
   echo "Syncing $f"
-  BASENAME=$(basename "$f")
-  STATS=$(eval "rsync $USER_RSYNC $f/ $USER_REPO:$USER_TODIR/$BASENAME")
+  SCHEDID=$(basename "$f")
+  STATS=$(eval "rsync $USER_RSYNC $f/ $USER_REPO:$USER_TODIR/$SCHEDID")
   SENT=$(echo "$STATS"|grep 'sent:'|sed -e 's/.*: //g')
   RECV=$(echo "$STATS"|grep 'received:'|sed -e 's/.*: //g')
   TOTAL=$(($SENT + $RECV))
 
   echo "$SENT sent, $RECV received, $TOTAL total."
 
-  if [ -f "$USERDIR/$BASENAME.traffic" ]; then 
-    TRAFFIC=$(cat $USERDIR/$BASENAME.traffic)
+  if [ -f "$USERDIR/$SCHEDID.traffic" ]; then
+    TRAFFIC=$(cat $USERDIR/$SCHEDID.traffic)
     RESULTS=$(echo $TRAFFIC | jq -r '.results // 0')
     RESULTS=$(( $RESULTS + $TOTAL ))
-    echo $TRAFFIC | jq ".results=$RESULTS" > $USERDIR/$BASENAME.traffic
+    echo $TRAFFIC | jq ".results=$RESULTS" > $USERDIR/$SCHEDID.traffic
+
+    if [ -f "$USERDIR/$SCHEDID.conf" ]; then
+      QUOTA=$(cat $USERDIR/$SCHEDID.conf | jq -r '.storage // 0')
+      DEPLOY=$(echo $TRAFFIC | jq -r '.deployment // 0')
+
+      if [ "$(($RESULTS + $DEPLOY))" -gt "$QUOTA" ]; then
+        docker stop -t 0 monroe-$SCHEDID;
+        echo "storage quota exceeded." >> /experiments/user/$SCHEDID/container.stat
+        echo "failed; storage quota exceeded" > /experiments/user/$SCHEDID.status
+      fi
   fi
 
 done
