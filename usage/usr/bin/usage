@@ -85,6 +85,7 @@ for IF in "${@:3}"; do
               if (( $EXTOTAL > $TRAFFICQ )); then
                 docker stop -t 0 $EXPERIMENT
                 echo "quota exceeded on interface $IM ($IF)." >> /experiments/user/$SCHEDID/container.stat
+                echo "failed; traffic quota exceeded on interface $IM ($IF)" > /experiments/user/$SCHEDID.status
               fi
             fi
           fi
