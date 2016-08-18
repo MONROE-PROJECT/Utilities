@@ -36,6 +36,7 @@ for f in $USERDIR/*; do
         echo "storage quota exceeded." >> /experiments/user/$SCHEDID/container.stat
         echo "failed; storage quota exceeded" > /experiments/user/$SCHEDID.status
       fi
+    fi
   fi
 
 done
