@@ -25,7 +25,7 @@ for f in $USERDIR/*; do
     TRAFFIC=$(cat $USERDIR/$SCHEDID.traffic)
     RESULTS=$(echo $TRAFFIC | jq -r '.results // 0')
     # skip on empty files and parsing errors
-    if [ $? -gt 0 ]; then
+    if [ $? -gt 0 ] || [ -z "$TRAFFIC" ]; then
       logger -t monroe-user-experiments "Error parsing traffic report $SCHEDID ($TRAFFIC)";
       continue;
     fi
