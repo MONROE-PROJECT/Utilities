@@ -24,8 +24,19 @@ for f in $USERDIR/*; do
   if [ -f "$USERDIR/$SCHEDID.traffic" ]; then
     TRAFFIC=$(cat $USERDIR/$SCHEDID.traffic)
     RESULTS=$(echo $TRAFFIC | jq -r '.results // 0')
+    # skip on empty files and parsing errors
+    if [ $? -gt 0 ]; then
+      logger -t monroe-user-experiments "Error parsing traffic report $SCHEDID ($TRAFFIC)";
+      continue;
+    fi
+
     RESULTS=$(( $RESULTS + $TOTAL ))
-    echo $TRAFFIC | jq ".results=$RESULTS" > $USERDIR/$SCHEDID.traffic
+    UPDATE=$(echo $TRAFFIC | jq ".results=$RESULTS")
+    if [ ! -z "$UPDATE" ]; then
+      echo "$UPDATE" > $USERDIR/$SCHEDID.traffic
+    else
+      logger -t monroe-user-experiments "Error updating traffic report $SCHEDID from values ($TOTAL, $RESULTS, $UPDATE, $TRAFFIC)"
+    fi
 
     if [ -f "$USERDIR/$SCHEDID.conf" ]; then
       QUOTA=$(cat $USERDIR/$SCHEDID.conf | jq -r '.storage // 0')
