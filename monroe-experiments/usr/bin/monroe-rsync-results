@@ -22,8 +22,8 @@ function merge {
     bzip2 -9 ${MERGEDFILE} &&
     rm ${ALLFILES}                &&  # only if successful
     logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
-    rm -f ${TMPMERGEFILE} # If step mv (or rm) failed above, always delete the tmpmergefile
   fi;
+  rm -f ${TMPMERGEFILE} # Always delete tempfile
 }
 
 echo "Starting merge and compression of files"
