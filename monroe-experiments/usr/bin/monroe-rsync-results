@@ -22,7 +22,7 @@ function merge {
     rm ${ALLFILES}                &&  # only if successful
     logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
   fi
-  rm -f ${TMPMERGEFILE} # If step mv (or rm) failed above, always delete the tmpmergefile
+  rm -f ${TMPMERGEFILE} # Always delete the tempfile 
 }
 
 echo "Starting rsync of $($RSYNC_LS $BASEDIR | grep json | wc -l) JSON files (and .gz) to $REPO...";
