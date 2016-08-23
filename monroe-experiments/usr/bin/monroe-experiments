@@ -9,7 +9,8 @@ PING_TARGET=193.10.227.25 # may be overwritten by defaults
 function mk_disk {
   mkdir -p $BASEDIR/$1
   if mountpoint -q $BASEDIR/$1; then
-    echo "$1 outdir is mounted"
+    echo "$1 outdir is mounted, cleaning tmp files only"
+    rm $BASEDIR/$1/tmp*
   else
     MNTPNT=""
     if [ -b /dev/vg-monroe/cont-$1 ]; then
