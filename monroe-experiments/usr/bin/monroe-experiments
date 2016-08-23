@@ -164,7 +164,7 @@ for IF in $INTERFACES_PING; do
              \"server\":\"$PING_TARGET\", \
              \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
 
-      rm $BASEDIR/$1/ping/tmp* || true;
+      rm $BASEDIR/ping/tmp* || true;
       docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro $URL_PING $IF || true;
       logger -t monroe-experiments "started ping container on $IF.";
     fi;
@@ -173,14 +173,14 @@ done
 
 if [ -z "$(docker ps --no-trunc|grep $URL_METADATA)" ]; then
   echo "{\"nodeid\":\"$NODEID\"}" > $BASEDIR/metadata.conf
-  rm $BASEDIR/$1/metadata/tmp* || true;
+  rm $BASEDIR/metadata/tmp* || true;
   docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro $URL_METADATA || true;
   logger -t monroe-experiments "started metadata container.";
 fi
 
 if [ -z "$(docker ps --no-trunc|grep $URL_MPLANE)" ]; then
   mkdir -p $BASEDIR/tstat # shared folder for tstat results
-  rm $BASEDIR/$1/mplane/tmp* || true;
+  rm $BASEDIR/mplane/tmp* || true;
   docker run -d --net=container:$CID \
              -v $BASEDIR/mplane:/monroe/results \
              -v $BASEDIR/tstat:/monroe/tstat    \
