@@ -6,7 +6,7 @@ Type=oneshot
 User=root
 RemainAfterExit=true
 # update tuptime and /etc/bootcnt for data exporter
-ExecStart=/bin/bash -c '/usr/bin/tuptime -x; /usr/bin/tuptime -t | /usr/bin/tail -n1 | /bin/sed -e "s/ .*/ 1/g" > /etc/bootcnt'
+ExecStart=/bin/bash -c '/usr/bin/tuptime -x; /usr/bin/write-bootcnt'
 ExecStop=/usr/bin/tuptime -xg
 
 [Install]
