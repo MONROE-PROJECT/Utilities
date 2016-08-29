@@ -79,7 +79,7 @@ for CONTAINER in $(docker ps -aq); do
   fi;
 done
 # clean stale images
-docker rmi $(docker images -a|grep '^<none>'|awk "{print \$3}") 2>/dev/null || true
+docker rmi $(docker images -a|grep '<none>'|awk "{print \$3}") 2>/dev/null || true
 
 MNS="ip netns exec monroe";
 
@@ -157,7 +157,7 @@ for IF in $INTERFACES_PING; do
       COUNT=$(($COUNT + 1))
       echo $COUNT > $BASEDIR/ping.counter
 
-      IMAGEID=$(docker images -q --no-trunc $URL_PING)
+      IMAGEID=$(docker images -q --no-trunc $URL_PING|head -n 1)
       
       echo "{\"nodeid\":\"$NODEID\", \
              \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
