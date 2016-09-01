@@ -1,0 +1,31 @@
+# $1 = target interface
+
+INTERFACE=$1
+ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
+MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
+DELETE=$2
+MSGID=$3
+
+function tell {
+  COMMAND=$1
+  if [ ! -z "$2" ]; then 
+    MULTI="multi_data=1&"
+  fi
+  DATA=$(curl -s -X GET --interface $INTERFACE 'http://'$MODEM'/goform/goform_get_cmd_process?'$MULTI'isTest=false&cmd='$COMMAND'&page=0&data_per_page=500&mem_store=1&tags=10&order_by=order+by+id+desc' -H 'Referer: http://'$MODEM'/index.html')
+  echo $DATA | jq . 
+}
+
+tell "modem_main_state%2Cpin_status%2Cloginfo%2Cnew_version_state%2Ccurrent_upgrade_state%2Cis_mandatory%2Csignalbar%2Cnetwork_type%2Cnetwork_provider%2Cppp_status%2Csta_ip_status%2CRadioOff%2Cstation_mac%2Cbattery_charging%2Cbattery_vol_percent%2Cbattery_pers%2Cspn_display_flag%2Cplmn_display_flag%2Cspn_name_data%2Cspn_b1_flag%2Cspn_b2_flag%2Csimcard_roam%2Crealtime_tx_bytes%2Crealtime_rx_bytes%2Cex_wifi_rssi%2Crealtime_tx_thrpt%2Crealtime_rx_thrpt%2CEX_SSID1%2Csms_received_flag%2Csts_received_flag%2Csms_unread_num%2CEX_wifi_profile%2Cm_ssid_enable%2Clan_ipaddr%2Crealtime_time%2Cmonthly_rx_bytes%2Cmonthly_tx_bytes%2Cmonthly_time%2Cdate_month%2Cdata_volume_limit_switch%2Cdata_volume_limit_size%2Cdata_volume_alert_percent%2Cdata_volume_limit_unit%2Croam_setting_option%2Cupg_roam_switch%2Cap_station_mode" multi
+
+tell "APN_config0%2CAPN_config1%2CAPN_config2%2CAPN_config3%2CAPN_config4%2CAPN_config5%2CAPN_config6%2CAPN_config7%2CAPN_config8%2CAPN_config9%2CAPN_config10%2CAPN_config11%2CAPN_config12%2CAPN_config13%2CAPN_config14%2CAPN_config15%2CAPN_config16%2CAPN_config17%2CAPN_config18%2CAPN_config19%2Cipv6_APN_config0%2Cipv6_APN_config1%2Cipv6_APN_config2%2Cipv6_APN_config3%2Cipv6_APN_config4%2Cipv6_APN_config5%2Cipv6_APN_config6%2Cipv6_APN_config7%2Cipv6_APN_config8%2Cipv6_APN_config9%2Cipv6_APN_config10%2Cipv6_APN_config11%2Cipv6_APN_config12%2Cipv6_APN_config13%2Cipv6_APN_config14%2Cipv6_APN_config15%2Cipv6_APN_config16%2Cipv6_APN_config17%2Cipv6_APN_config18%2Cipv6_APN_config19%2Cm_profile_name%2Cprofile_name%2Cwan_dial%2Capn_select%2Cpdp_type%2Cpdp_select%2Cpdp_addr%2Cindex%2CCurrent_index%2Capn_auto_config%2Cipv6_apn_auto_config%2Capn_mode%2Cwan_apn%2Cppp_auth_mode%2Cppp_username%2Cppp_passwd%2Cdns_mode%2Cprefer_dns_manual%2Cstandby_dns_manual%2Cipv6_wan_apn%2Cipv6_pdp_type%2Cipv6_ppp_auth_mode%2Cipv6_ppp_username%2Cipv6_ppp_passwd%2Cipv6_dns_mode%2Cipv6_prefer_dns_manual%2Cipv6_standby_dns_manual" multi
+
+tell "lte_band_lock%2Ccurrent_network_mode%2Cm_netselect_save%2Cnet_select_mode%2Cm_netselect_contents%2Cnet_select%2Cppp_status%2Cmodem_main_state"
+
+tell "wifi_coverage%2Cm_ssid_enable%2Cimei%2Cweb_version%2Cwa_inner_version%2Chardware_version%2CMAX_Access_num%2Cwan_active_band%2CSSID1%2Cm_SSID%2Cm_HideSSID%2Cm_MAX_Access_num%2Clan_ipaddr%2Cmac_address%2Cmsisdn%2CLocalDomain%2Cwan_ipaddr%2Cipv6_wan_ipaddr%2Cipv6_pdp_type%2Cpdp_type%2Cppp_status%2Csim_imsi%2Crssi%2Crscp%2Clte_rsrp%2Cnetwork_type"
+
+tell "data_volume_limit_switch%2Cdata_volume_limit_unit%2Cdata_volume_limit_size%2Cdata_volume_alert_percent"
+
+tell "IPPortFilterEnable%2CDefaultFirewallPolicy%2CIPPortFilterRules_0%2CIPPortFilterRules_1%2CIPPortFilterRules_2%2CIPPortFilterRules_3%2CIPPortFilterRules_4%2CIPPortFilterRules_5%2CIPPortFilterRules_6%2CIPPortFilterRules_7%2CIPPortFilterRules_8%2CIPPortFilterRules_9%2CIPPortFilterRulesv6_0%2CIPPortFilterRulesv6_1%2CIPPortFilterRulesv6_2%2CIPPortFilterRulesv6_3%2CIPPortFilterRulesv6_4%2CIPPortFilterRulesv6_5%2CIPPortFilterRulesv6_6%2CIPPortFilterRulesv6_7%2CIPPortFilterRulesv6_8%2CIPPortFilterRulesv6_9"
+
+tell "PortForwardEnable%2CPortForwardRules_0%2CPortForwardRules_1%2CPortForwardRules_2%2CPortForwardRules_3%2CPortForwardRules_4%2CPortForwardRules_5%2CPortForwardRules_6%2CPortForwardRules_7%2CPortForwardRules_8%2CPortForwardRules_9"
+

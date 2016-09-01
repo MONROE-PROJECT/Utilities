@@ -1,0 +1,12 @@
+Package: mf910-info
+Version: 0.1.1
+Section: devel
+Priority: optional
+Architecture: amd64
+Depends: curl, sed, iproute2, jq
+Replaces: mf910-sms (<<0.1.1)
+Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/mf910-info
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: Read status information from the MF910 control interface.
+ Read and delete text messages from the MF910 control interface.
