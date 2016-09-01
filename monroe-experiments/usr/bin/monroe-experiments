@@ -41,6 +41,13 @@ function mk_disk {
 
 ##############################################################################
 
+MAINTENANCE=$(cat /.maintenance || echo 0)
+if [ $MAINTENANCE -eq 1 ]; then
+  docker stop -t 0 $(docker ps -q) || true;
+  logger -t monroe-experiments "system in maintenance mode.";
+  exit 1
+fi
+
 if [ ! -f "$KEY" ]; then
   logger -t monroe-experiments "repository key does not exist.";
   exit 1;
