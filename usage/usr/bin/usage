@@ -1,8 +1,8 @@
 #!/bin/bash
- 
+
 ## usage: ./usage basedir sqlprefix interface [interface, ...]
 ## where: basedir = directory to store usage statistics in
-##        interface = interface to monitor 
+##        interface = interface to monitor
 
 BASEDIR=$1
 SQLPREFIX=$2
@@ -15,8 +15,11 @@ DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
 
 ## Identify active running experiment to monitor individual quotas
 EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
+if [ -z "$EXPERIMENT" ]; then
+  EXPERIMENT=$(docker ps -a --format {{.Image}} | grep 'monroe-' | head -n 1)
+fi
 ## TODO: identify active experiment, if there are several
-if [ ! -z "$EXPERIMENT" ]; then 
+if [ ! -z "$EXPERIMENT" ]; then
   SCHEDID=${EXPERIMENT##*-}
   EXCONFIG=$(cat /experiments/user/$SCHEDID.conf 2>/dev/null)
 fi
@@ -34,7 +37,7 @@ for IF in "${@:3}"; do
   fi
 
   MNS=""
-  if [ ! -z "$SQLPREFIX" ]; then 
+  if [ ! -z "$SQLPREFIX" ]; then
     OP=$(usb2op $IF)
     if [ -z "$OP" ]; then
       continue
@@ -47,7 +50,7 @@ for IF in "${@:3}"; do
   TX=$($MNS cat /sys/class/net/$IF/statistics/tx_bytes)
   if [ -z "$RX"]; then continue; fi
 
-  if [ -f $DIR/$IM.rx.last ]; then 
+  if [ -f $DIR/$IM.rx.last ]; then
     RXL=$(cat $DIR/$IM.rx.last)
     TXL=$(cat $DIR/$IM.tx.last)
     RXT=$(cat $DIR/$IM.rx.total || echo 0)
@@ -55,22 +58,22 @@ for IF in "${@:3}"; do
     RXD=$(($RX - $RXL))
     TXD=$(($TX - $TXL))
 
-    if (( $RXD >= 0 )) && (( $TXD >= 0 )); then 
+    if (( $RXD >= 0 )) && (( $TXD >= 0 )); then
       RXT=$(($RXT + $RXD))
       echo $RXT > $DIR/$IM.rx.total
       TXT=$(($TXT + $TXD))
       echo $TXT > $DIR/$IM.tx.total
       echo $(($RXT + $TXT)) > $DIR/$IM.total
 
-      if [ ! -z "$SQLPREFIX" ]; then 
-        if (( $RXD > 0 )) || (( $TXD > 0 )); then 
+      if [ ! -z "$SQLPREFIX" ]; then
+        if (( $RXD > 0 )) || (( $TXD > 0 )); then
 
-          # NOTE: SQLPrefix is set only for the experiment namespace, to 
+          # NOTE: SQLPrefix is set only for the experiment namespace, to
           # report data usage not captured by network listener
           # We use this condition to report to SQL and the experiment folder
 
 
-          if [ ! -z "$EXPERIMENT" ]; then 
+          if [ ! -z "$EXPERIMENT" ]; then
             mkdir -p $BASEDIR/$EXPERIMENT
             EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IM.rx.total || echo 0)
             EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IM.tx.total || echo 0)
@@ -96,9 +99,9 @@ for IF in "${@:3}"; do
             NOW=$(date +%s) # TODO: should be start, not end.
             echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,IntervalStart,RxData,TxData) VALUES('$IMEI','$ICCID','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
           fi
-        fi 
+        fi
       fi
-    fi 
+    fi
 
   fi
   echo $RX > $DIR/$IM.rx.last
