@@ -1,0 +1,2 @@
+# allow ICMP requests
+${ipt4} -A INPUT -p icmp -j ACCEPT

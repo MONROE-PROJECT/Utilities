@@ -2,20 +2,18 @@
 
 set -e
 
+PIDFILE=/var/run/mf910-reboot.pid
 case "$1" in
-  start)
+  start|restart)
+    start-stop-daemon -K -p $PIDFILE || true
     echo -n "Starting mf910-reboot.sh: "
-    start-stop-daemon -S -b -n mf910-reboot -a /usr/bin/mf910-reboot.sh
+    start-stop-daemon -S -b -a /usr/bin/mf910-reboot.sh -p $PIDFILE -m
     echo "done"
     ;;
   stop)
     echo -n "Stopping mf910-reboot.sh: "
-    start-stop-daemon -K -n mf910-reboot
+    start-stop-daemon -K -p $PIDFILE || true
     echo "done"
-    ;;
-  restart)
-    $0 stop
-    $0 start
     ;;
   *)
     echo "Usage mf910-reboot { start | stop | restart }" >&2
