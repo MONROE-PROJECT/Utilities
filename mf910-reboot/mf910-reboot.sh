@@ -2,6 +2,7 @@
 
 GREP=$(which grep);
 PING=$(which ping);
+TAIL=$(which tail);
 REBOOT=$(which reboot);
 DATE=$(which date);
 DHCP_LEASES="/usr/zte/zte_conf/config/dnsmasq.leases";
@@ -23,9 +24,9 @@ LOGFILE=/var/log/mf910-reboot.log
 
 log()
 {
-    echo "[$(date +%s%N)] $1" >> $LOGFILE;
+    echo "[$($DATE +%s)] $1" >> $LOGFILE;
     # tiny logrotate
-    tail -n 100 $LOGFILE > $LOGFILE.tmp;
+    $TAIL -n 100 $LOGFILE > $LOGFILE.tmp;
     mv $LOGFILE.tmp $LOGFILE;
 }
 
