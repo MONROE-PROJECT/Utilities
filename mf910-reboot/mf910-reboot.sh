@@ -19,6 +19,15 @@ TSTAMP_DIFF_THRESHOLD=3600
 #10 minutes should be enough for us to recover mifi in case script fails.
 #And worst-worst case, we can do factory reset of mifi
 MISSING_HOST_REBOOT_TIMEOUT=600
+LOGFILE=/var/log/mf910-reboot.log
+
+log()
+{
+    echo "[$(date +%s%N)] $1" >> $LOGFILE;
+    # tiny logrotate
+    tail -n 100 $LOGFILE > $LOGFILE.tmp;
+    mv $LOGFILE.tmp $LOGFILE;
+}
 
 handle_missing_host()
 {
@@ -27,7 +36,7 @@ handle_missing_host()
     if [ $MISSING_HOST_TSTAMP -eq 0 ];
     then
         MISSING_HOST_TSTAMP=$($DATE +%s);
-        logger -t mf910-reboot "Missing host tstamp $MISSING_HOST_TSTAMP";
+        log "Missing host tstamp $MISSING_HOST_TSTAMP";
         return;
     fi
 
@@ -46,11 +55,11 @@ handle_missing_host()
 
     if [ $tstamp_diff -ge $TSTAMP_DIFF_THRESHOLD ];
     then
-        logger -t mf910-reboot "Difference too great, keep checking";
+        log "Difference too great, keep checking";
         return;
     elif [ $tstamp_diff -ge $MISSING_HOST_REBOOT_TIMEOUT ];
     then
-        logger -t mf910-reboot "No hosts seen for $MISSING_HOST_REBOOT_TIMEOUT sec, rebooting";
+        log "No hosts seen for $MISSING_HOST_REBOOT_TIMEOUT sec, rebooting";
         "$REBOOT";
     fi
 }
@@ -62,7 +71,7 @@ do
     if [ -z "$HOST" ];
     then
         #Add timer + reboot here too
-        logger -t mf910-reboot "No Monroe host found in DHCP leases";
+        log "No Monroe host found in DHCP leases";
         handle_missing_host
         sleep 5;
         continue;
@@ -77,12 +86,12 @@ do
 
     if [ $? -ne 0 ];
     then
-        logger -t mf910-reboot "Could not reach host";
+        log "Could not reach host";
         ICMP_LOST_COUNT=$((ICMP_LOST_COUNT + 1));
 
         if [ $ICMP_LOST_COUNT -eq $ICMP_LOST_LIMIT ];
         then
-            logger -t mf910-reboot "Will reboot mifi";
+            log "Will reboot mifi";
             ICMP_LOST_COUNT=0;
             "$REBOOT";
         fi
