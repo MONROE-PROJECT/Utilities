@@ -1,0 +1,27 @@
+#! /bin/sh
+
+set -e
+
+case "$1" in
+  start)
+    echo -n "Starting mf910-reboot.sh: "
+    start-stop-daemon -S -b -n mf910-reboot -a /usr/bin/mf910-reboot.sh
+    echo "done"
+    ;;
+  stop)
+    echo -n "Stopping mf910-reboot.sh: "
+    start-stop-daemon -K -n mf910-reboot
+    echo "done"
+    ;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
+  *)
+    echo "Usage mf910-reboot { start | stop | restart }" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
+
