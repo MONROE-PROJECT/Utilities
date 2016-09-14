@@ -45,7 +45,7 @@ handle_missing_host()
 
     if [ $CUR_TSTAMP -lt $MISSING_HOST_TSTAMP ];
     then
-        MISSING_HOST_TSTAMP=$(CUR_TSTAMP);
+        MISSING_HOST_TSTAMP=$CUR_TSTAMP;
         log "Timestamp moved backwards, updatws missing host";
         return;
     fi
