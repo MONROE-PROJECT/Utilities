@@ -6,7 +6,7 @@ echo "Installing reboot script."
 
 DOWNLOAD_LOC="" # HTTP ONLY
 wget $DOWNLOAD_LOC/dnsmasq.patch -O /tmp/dnsmasq.patch
-patch /etc/init.d/dnsmasq /tmp/dnsmasq.patch
+patch -Np0 /etc/init.d/dnsmasq < /tmp/dnsmasq.patch
 wget $DOWNLOAD_LOC/mf910-reboot.sh -O /usr/bin/mf910-reboot.sh
 chmod +x /usr/bin/mf910-reboot.sh
 wget $DOWNLOAD_LOC/mf910-reboot.init -O /etc/init.d/mf910-reboot
