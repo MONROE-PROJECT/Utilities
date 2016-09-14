@@ -73,6 +73,8 @@ handle_missing_host()
     fi
 }
 
+log "Started MF910 rebooter";
+
 while true;
 do
     HOST=$($GREP -m 1 "Monroe" $DHCP_LEASES);
