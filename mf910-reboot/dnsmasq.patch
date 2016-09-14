@@ -1,0 +1,10 @@
+--- dnsmasq
++++ dnsmasq.new
+@@ -12,6 +12,7 @@
+     start)
+         echo -n "starting $DESC: $NAME... "
+ 	test -d /var/lib/misc/ || mkdir /var/lib/misc/
++	rm /usr/zte/zte_conf/config/dnsmasq.leases || true
+ 	start-stop-daemon -S -x $DAEMON -- $ARGS
+ 	echo "done."
+ 	;;
