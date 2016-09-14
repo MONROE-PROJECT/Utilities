@@ -13,6 +13,6 @@ mkdir -p /var/log
 
 echo "Enabling and starting reboot script."
 update-rc.d mf910-reboot defaults
-/etc/rc5.d/S99mf910-reboot start
+/etc/init.d/mf910-reboot start
 
 echo "Finished installation"
