@@ -10,8 +10,9 @@ chmod +x /usr/bin/mf910-reboot.sh
 wget $DOWNLOAD_LOC/mf910-reboot.init -O /etc/init.d/mf910-reboot
 chmod +x /etc/init.d/mf910-reboot
 mkdir -p /var/log
-ln -s /etc/init.d/mf910-reboot /etc/rc5.d/S99mf910-reboot || true
 
-echo "Starting reboot script."
-
+echo "Enabling and starting reboot script."
+update-rc.d mf910-reboot defaults
 /etc/rc5.d/S99mf910-reboot start
+
+echo "Finished installation"
