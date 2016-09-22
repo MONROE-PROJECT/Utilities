@@ -41,6 +41,9 @@ operators = {
   "Weblink": "op0",
   "Telia": "op1",
   "3 SE": "op2",
+
+#NITOS testbed / MONROE-FLEX project
+  "460 99": "op0",
 }
 
 for modem in data:
