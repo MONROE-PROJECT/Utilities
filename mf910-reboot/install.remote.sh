@@ -24,4 +24,7 @@ echo "Enabling and starting reboot script."
 adb shell 'update-rc.d mf910-reboot defaults'
 adb shell '/etc/init.d/mf910-reboot start'
 
-echo "Finished installation"
+echo "Finished installation, cleaning files"
+rm dnsmasq.patch
+rm mf910-reboot.sh
+rm mf910-reboot.init
