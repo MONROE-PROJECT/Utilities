@@ -55,6 +55,7 @@ for IF in "${@:3}"; do
 
   if [ -f $DIR/$IM.rx.last ]; then
     RXL=$(cat $DIR/$IM.rx.last)
+    if [ -z "$RXL" ]; then continue; fi
     TXL=$(cat $DIR/$IM.tx.last)
     RXT=$(cat $DIR/$IM.rx.total || echo 0)
     TXT=$(cat $DIR/$IM.tx.total || echo 0)
