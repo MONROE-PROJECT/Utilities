@@ -29,6 +29,7 @@ operators = {
   "voda IT": "op0",
   "TIM": "op1",
   "I WIND": "op2",
+  "WIND WEB": "op2",
 
   "Orange": "op0",
   "Orange Internet Móvil": "op0",
