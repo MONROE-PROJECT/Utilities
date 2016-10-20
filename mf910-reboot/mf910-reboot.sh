@@ -10,7 +10,7 @@ HOST_IP="";
 ICMP_LOST_COUNT=0;
 #How many ICMP packets can be lost in a row. When the error this script is
 #designed to detect occurs, we will loose everything
-ICMP_LOST_LIMIT=5;
+ICMP_LOST_LIMIT=$(expr $RANDOM % 20 + 5)
 
 MISSING_HOST_TSTAMP=0
 CUR_TSTAMP=0
@@ -19,7 +19,7 @@ TSTAMP_DIFF_THRESHOLD=3600
 #If no host has been seen for 10 minutes, something is wrong. Worst-case,
 #10 minutes should be enough for us to recover mifi in case script fails.
 #And worst-worst case, we can do factory reset of mifi
-MISSING_HOST_REBOOT_TIMEOUT=600
+MISSING_HOST_REBOOT_TIMEOUT=$(expr $RANDOM % 120 + 600)
 LOGFILE=/var/log/mf910-reboot.log
 
 log()
