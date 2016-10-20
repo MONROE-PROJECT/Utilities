@@ -10,4 +10,4 @@ socket.setsockopt(zmq.SUBSCRIBE, '')
 
 while True:
     string = socket.recv()
-        print string
+    print string
