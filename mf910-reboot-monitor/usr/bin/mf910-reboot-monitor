@@ -21,8 +21,12 @@ for imei,ifname in modems.iteritems():
         print "failed to set %s into adb mode" % imei
         continue
     sleep(5)
-    install=check_output(["mf910-install-reboot-monitor"])
-    if not "Finished installation" in install:
+    sleep(5)
+    try:
+        install=check_output(["mf910-install-reboot-monitor"])
+        if not "Finished installation" in install:
+            raise Exception()
+    except:
         print "failed to install reboot monitor on %s" % imei 
         continue
     installed.append(imei)
