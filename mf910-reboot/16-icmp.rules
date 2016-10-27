@@ -1,2 +1,0 @@
-# allow ICMP requests
-${ipt4} -A INPUT -i usb+ -p icmp -j ACCEPT

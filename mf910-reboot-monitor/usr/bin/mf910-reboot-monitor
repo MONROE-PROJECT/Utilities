@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import simplejson as json
+from urllib2 import urlopen
+from subprocess import check_output
+from time import sleep
+
+CONFIG="/etc/config/mf910-reboot-monitor.json"
+MODEMS="http://localhost:88/modems"
+
+installed=json.loads(open(CONFIG,"r").read())
+available=json.loads(urlopen(MODEMS).read())
+
+modems=dict([(x.get('imei'),x.get('ifname')) for x in available if x.get("modemName")=="MF910"])
+
+for imei,ifname in modems.iteritems():
+    if imei in installed:
+        continue
+    doadb=check_output(["mf910-adb", ifname])
+    if not "success" in doadb:
+        print "failed to set %s into adb mode" % imei
+        continue
+    sleep(5)
+    install=check_output(["mf910-install-reboot-monitor"])
+    if not "Finished installation" in install:
+        print "failed to install reboot monitor on %s" % imei 
+        continue
+    installed.append(imei)
+
+fd=open(CONFIG,"w")
+fd.write(json.dumps(installed))
+fd.close()

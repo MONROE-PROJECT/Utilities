@@ -1,0 +1,4 @@
+# /etc/cron.d/mf910-reboot-monitor
+# check available mifis for having mf910-reboot.sh installed
+
+1 * * * *   root    /usr/bin/mf910-reboot-monitor

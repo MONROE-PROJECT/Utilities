@@ -1,0 +1,10 @@
+Package: mf910-reboot-monitor
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Depends: mf910-info, android-tools-adb
+Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/mf910-reboot
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: Install a reboot script on all available ZTE
