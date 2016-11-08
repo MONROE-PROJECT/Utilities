@@ -48,6 +48,11 @@ for f in $USERDIR/*; do
         echo "failed; storage quota exceeded" > /experiments/user/$SCHEDID.status
       fi
     fi
+  else 
+    # the container has been stopped already, unmount and remove the directory
+    rm -r  $USERDIR/$SCHEDID/*
+    umount $USERDIR/$SCHEDID
+    rmdir  $USERDIR/$SCHEDID
   fi
 
 done
