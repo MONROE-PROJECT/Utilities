@@ -50,9 +50,9 @@ for f in $USERDIR/*; do
     fi
   else 
     # the container has been stopped already, unmount and remove the directory
-    rm -r  $USERDIR/$SCHEDID/*
-    umount $USERDIR/$SCHEDID
-    rmdir  $USERDIR/$SCHEDID
+    rm -r  $USERDIR/$SCHEDID/* || true
+    umount $USERDIR/$SCHEDID   || true
+    rmdir  $USERDIR/$SCHEDID   || true
   fi
 
 done
