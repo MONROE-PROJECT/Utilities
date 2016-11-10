@@ -1,6 +1,11 @@
 #!/bin/bash
 # $1 = target interface
 
+if [ $# -ne 1 ]; then
+  printf "Usage: $0 interface\n"
+  exit 1
+fi
+
 INTERFACE=$1
 ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
 MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
