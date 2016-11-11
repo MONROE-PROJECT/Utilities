@@ -7,9 +7,7 @@ if [ $# -ne 1 ]; then
 fi
 
 INTERFACE=$1
-ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
-MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
 
-curl -sL --interface $INTERFACE 'http://'$MODEM'/goform/goform_set_cmd_process?isTest=false&goformId=LOGIN&password=YWRtaW4%3D' -H 'Referer: http://'$MODEM'/index.html'
-
-curl -sL --interface $INTERFACE 'http://'$MODEM'/goform/goform_set_cmd_process?goformId=USB_MODE_SWITCH&usb_mode=6' -H 'Referer: http://'$MODEM'/index.html'
+. /usr/bin/mf910-common
+login
+set_cmd 'goformId=USB_MODE_SWITCH&usb_mode=6'

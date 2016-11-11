@@ -1,0 +1,43 @@
+#!/bin/bash
+# $1 = target interface
+
+function encode {
+  B64=$( echo -n $1 | base64 )
+  HTTP=$( echo -n $B64 | sed -e 's/=/%3D/g' )
+  echo -n $HTTP
+}
+
+function setcmd {
+  curl -sL --interface $INTERFACE \
+      'http://'$MODEM'/goform/goform_set_cmd_process' \
+      -H 'Referer: http://'$MODEM'/index.html' \
+      -H 'Origin: http://'$MODEM \
+      -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' \
+-H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: nb-NO,nb;q=0.8,no;q=0.6,nn;q=0.4,en-US;q=0.2,en;q=0.2' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' \
+      --data $1 
+}
+
+function login() {
+
+  INTERFACE=$1
+
+  echo -n "Identifying $INTERFACE... "
+  ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
+  MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
+  echo "$MODEM."
+
+  echo -n "Fetching IMEI... "
+  IMEI=$(curl -s -X GET --interface $INTERFACE 'http://'$MODEM'/goform/goform_get_cmd_process?'$MULTI'isTest=false&cmd=imei&page=0&data_per_page=500&mem_store=1&tags=10&order_by=order+by+id+desc' -H 'Referer: http://'$MODEM'/index.html' | jq -r .imei)
+  echo $IMEI
+
+  . /etc/default/mifi.$IMEI
+
+  if [ -z "$ADMINKEY" ]; then
+    echo "Missing keys in mifi.$IMEI."
+    exit 1
+  fi
+
+  echo -n "Login... "
+  setcmd 'isTest=false&goformId=LOGIN&password='$(encode $ADMINKEY)
+}
+
