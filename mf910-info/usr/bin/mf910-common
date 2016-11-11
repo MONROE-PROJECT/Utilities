@@ -18,6 +18,7 @@ function setcmd {
 }
 
 function fetch_wifi {
+  # TODO: we should be able to read this out from mf910-info instead
   curl -so /tmp/qrcode.png $MODEM/img/qrcode_ssid_wifikey.png
   zbarimg -q /tmp/qrcode.png | sed -e 's/.*P:\(.*\);$/\1/'
 }
