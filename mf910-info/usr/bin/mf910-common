@@ -17,7 +17,12 @@ function setcmd {
       --data $1 
 }
 
-function login() {
+function fetch_wifi {
+  curl -so /tmp/qrcode.png $MODEM/img/qrcode_ssid_wifikey.png
+  zbarimg -q /tmp/qrcode.png | sed -e 's/.*P:\(.*\);$/\1/'
+}
+
+function login {
 
   export INTERFACE=$1
 
@@ -31,13 +36,18 @@ function login() {
   echo $IMEI
 
   . /etc/default/mifi.$IMEI
+  export ADMINKEY=$ADMINKEY
+  export WIFIKEY=$WIFIKEY
 
   if [ -z "$ADMINKEY" ]; then
-    echo "Missing keys in mifi.$IMEI."
+    echo "Missing keys in mifi.$IMEI. Trying wifi key."
+    export WIFIKEY=$(fetch_wifi)
+    export ADMINKEY=$WIFIKEY
+  fi
+  if [ -z "$ADMINKEY" ]; then
     exit 1
   fi
 
   echo -n "Login... "
   setcmd 'isTest=false&goformId=LOGIN&password='$(encode $ADMINKEY)
 }
-
