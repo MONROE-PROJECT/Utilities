@@ -2,6 +2,6 @@
 # $1 = target interface
 
 . /usr/bin/mf910-common
-login
+login $1
 
 set_cmd 'goformId=REBOOT_DEVICE'
