@@ -19,15 +19,15 @@ function setcmd {
 
 function login() {
 
-  INTERFACE=$1
+  export INTERFACE=$1
 
   echo -n "Identifying $INTERFACE... "
-  ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
-  MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
+  export ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
+  export MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
   echo "$MODEM."
 
   echo -n "Fetching IMEI... "
-  IMEI=$(curl -s -X GET --interface $INTERFACE 'http://'$MODEM'/goform/goform_get_cmd_process?'$MULTI'isTest=false&cmd=imei&page=0&data_per_page=500&mem_store=1&tags=10&order_by=order+by+id+desc' -H 'Referer: http://'$MODEM'/index.html' | jq -r .imei)
+  export IMEI=$(curl -s -X GET --interface $INTERFACE 'http://'$MODEM'/goform/goform_get_cmd_process?'$MULTI'isTest=false&cmd=imei&page=0&data_per_page=500&mem_store=1&tags=10&order_by=order+by+id+desc' -H 'Referer: http://'$MODEM'/index.html' | jq -r .imei)
   echo $IMEI
 
   . /etc/default/mifi.$IMEI
