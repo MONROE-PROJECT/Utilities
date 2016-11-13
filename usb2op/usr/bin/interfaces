@@ -15,9 +15,12 @@ for modem in data:
     iccid = modem.get('iccid')
     op    = usb2op(modem.get('ifname'))
     if op is not None:
-        link = subprocess.check_output('ip netns exec monroe ip link show '+op)
-        alive = "state UP" in link
-        if alive:
-            modems.append({iccid: op})
+        try:
+            link = subprocess.check_output(['/sbin/ip', 'netns', 'exec', 'monroe', '/sbin/ip', 'link', 'show', op])
+            alive = "state UP" in link
+            if alive:
+                modems.append({iccid: op})
+        except:
+            pass
     
 print json.dumps(modems)
