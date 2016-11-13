@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+import urllib2
+import simplejson as json
+import subprocess
+from usb2op import usb2op
+
+r = urllib2.urlopen("http://localhost:88/modems").read()
+data = json.loads(r)
+
+modems=[]
+for modem in data:
+    iccid = modem.get('iccid')
+    op    = usb2op(modem.get('ifname'))
+    if op is not None:
+        link = subprocess.check_output('ip netns exec monroe ip link show '+op)
+        alive = "state UP" in link
+        if alive:
+            modems.append({iccid: op})
+    
+print json.dumps(modems)
