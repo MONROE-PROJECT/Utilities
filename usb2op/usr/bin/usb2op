@@ -5,21 +5,6 @@ import sys
 import urllib2
 import simplejson as json
 
-reverse=False
-
-if len(sys.argv) < 2:
-  sys.exit(1)
-if sys.argv[1]=="-r":
-  reverse=True
-
-interface = sys.argv[-1]
-if interface in ["eth0", "wlan0"]:
-  print interface
-  sys.exit(0)
-
-r = urllib2.urlopen("http://localhost:88/modems").read()
-data = json.loads(r)
-
 operators = { 
   "Telenor": "op0",
   "NetCom": "op1",
@@ -48,17 +33,37 @@ operators = {
   "460 99": "op0",
 }
 
-for modem in data:
-  if modem.get('ifname') == 'wwan0':
-    continue
-  if reverse:
-    if operators.get(modem.get('ispName','')) == interface:
-      print modem.get('ifname','')
-  else:
-    if modem.get('ifname','') == interface:  
-      op = operators.get(modem.get('ispName',''))
-      if op is not None:
-        print op
-        sys.exit(0)
+def usb2op(interface, data=None, reverse=False):
+    if interface in ["eth0", "wlan0"]:
+        return interface
+ 
+    if data is None:
+        r = urllib2.urlopen("http://localhost:88/modems").read()
+        data = json.loads(r)
 
-sys.exit(1)
+    for modem in data:
+        if modem.get('ifname') == 'wwan0':
+            continue
+        if reverse:
+            if operators.get(modem.get('ispName','')) == interface:
+                return modem.get('ifname','')
+        else:
+            if modem.get('ifname','') == interface:  
+                op = operators.get(modem.get('ispName',''))
+                if op is not None:
+                    return op
+    return None
+
+if __name__=="__main__":
+    reverse=False
+
+    if len(sys.argv) < 2:
+        sys.exit(1)
+    if sys.argv[1]=="-r":
+        reverse=True
+
+    interface = sys.argv[-1]
+    op = usb2op(interface, reverse=reverse)
+    if op is None:
+        sys.exit(1)
+    print op
