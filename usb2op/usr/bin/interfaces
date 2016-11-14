@@ -20,10 +20,11 @@ def get_interfaces():
                 link = subprocess.check_output(['/sbin/ip', 'netns', 'exec', 'monroe', '/sbin/ip', 'link', 'show', op])
                 alive = "state UP" in link
                 if alive:
-                    modems.append({iccid: op})
+                    modems.append({"iccid":iccid,
+                                   "opname":op})
             except:
                 continue
     return modems
 
-if __name__="__main__":
+if __name__=="__main__":
     print json.dumps(get_interfaces())
