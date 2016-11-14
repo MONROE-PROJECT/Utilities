@@ -7,7 +7,7 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 USER_RSYNC_PARMS="-r -z --prune-empty-dirs"
-USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --remove-source-files --timeout=30"
+USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --timeout=30"
 
 for f in $USERDIR/*; do
   if [ ! -d "$f" ]; then continue; fi
