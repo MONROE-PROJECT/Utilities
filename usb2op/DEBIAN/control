@@ -3,6 +3,7 @@ Version: 0.1.0
 Section: devel
 Priority: optional
 Architecture: amd64
+Depends: python2.7, python-simplejson
 Maintainer: support@celerway.com
 Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/usb2op
 Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
