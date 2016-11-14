@@ -10,4 +10,4 @@ INTERFACE=$1
 
 . /usr/bin/mf910-common
 login $INTERFACE
-set_cmd 'goformId=USB_MODE_SWITCH&usb_mode=6'
+setcmd 'goformId=USB_MODE_SWITCH&usb_mode=6'
