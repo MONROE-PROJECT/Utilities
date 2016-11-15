@@ -4,4 +4,4 @@
 . /usr/bin/mf910-common
 login $1
 
-set_cmd 'goformId=REBOOT_DEVICE'
+setcmd 'goformId=REBOOT_DEVICE'
