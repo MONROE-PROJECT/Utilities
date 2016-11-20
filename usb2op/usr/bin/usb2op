@@ -31,6 +31,8 @@ operators = {
 
 #NITOS testbed / MONROE-FLEX project
   "460 99": "op0",
+#COSMOTE
+  "C-OTE": "op0",
 }
 
 def usb2op(interface, data=None, reverse=False):
