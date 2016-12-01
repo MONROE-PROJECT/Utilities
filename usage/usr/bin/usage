@@ -88,7 +88,7 @@ for IF in "${@:3}"; do
             echo $EXTOTAL > $BASEDIR/$EXPERIMENT/$IM.total
 
             if [ ! -z "$EXCONFIG" ] && [[ $IF == *"op"* ]]; then
-              TRAFFICQ=$(cat $EXCONFIG | jq .traffic)
+              TRAFFICQ=$(echo $EXCONFIG | jq .traffic)
               if (( $EXTOTAL > $TRAFFICQ )); then
                 docker stop -t 0 $EXPERIMENT
                 echo "quota exceeded on interface $IM ($IF)." >> /experiments/user/$SCHEDID/container.stat
