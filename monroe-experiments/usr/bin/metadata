@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import zmq
+import sys
 
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
@@ -11,3 +12,4 @@ socket.setsockopt(zmq.SUBSCRIBE, '')
 while True:
     string = socket.recv()
     print string
+    sys.stdout.flush()
