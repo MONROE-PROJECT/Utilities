@@ -5,56 +5,52 @@ import sys
 import urllib2
 import simplejson as json
 
-operators = { 
-  "Telenor": "op0",
-  "NetCom": "op1",
-  "242 14": "op2",
-  "ICE Nordisk Mobiltelefon AS" : "op2",
-
-  "voda IT": "op0",
-  "TIM": "op1",
-  "I WIND": "op2",
-  "WIND WEB": "op2",
-
-  "Orange": "op0",
-  "Orange Internet Móvil": "op0",
-  "YOIGO": "op1",
-  "Movistar": "op1",
-  "voda ES": "op2",
-
-  "TelenorS": "op0",
-  "Telenor SE": "op0",
-  "Weblink": "op0",
-  "Telia": "op1",
-  "3 SE": "op2",
-  "SWE": "op2",
-
-#NITOS testbed / MONROE-FLEX project
-  "460 99": "op0",
-#COSMOTE
-  "C-OTE": "op0",
-}
-
 def usb2op(interface, data=None, reverse=False):
-    if interface in ["eth0", "wlan0"]:
+    if interface in ["eth0", "wlan0", "wlan1"]:
         return interface
  
     if data is None:
         r = urllib2.urlopen("http://localhost:88/modems").read()
         data = json.loads(r)
+        
+    config=[]
+    match=None
+    
+    try:
+        config=open("/tmp/interfaces","r").read().splitlines())
+    except:
+    	pass
 
+    if reverse:
+    	index=int(interface[2:])
+        if len(config)<=index:
+        	return None
+        rimei=config[index]
+    
     for modem in data:
         if modem.get('ifname') == 'wwan0':
             continue
+        imei = modem.get('imei')
+        if imei is None:
+        	continue
+        
         if reverse:
-            if operators.get(modem.get('ispName','')) == interface:
-                return modem.get('ifname','')
+        	if imei == rimei:
+        	    return modem.get('ifname')
         else:
             if modem.get('ifname','') == interface:  
-                op = operators.get(modem.get('ispName',''))
-                if op is not None:
-                    return op
-    return None
+                opnr = config.index(imei)
+                if opnr==-1:
+                	config.append(imei)
+                opnr = config.index(imei)
+                match = "op%i" % opnr
+                break
+                
+    fd=open("/tmp/interfaces", "w") 
+    for line in interfaces:
+    	fd.write("%s\n" % line) 
+    fd.close()
+    return match
 
 if __name__=="__main__":
     reverse=False
