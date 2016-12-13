@@ -17,7 +17,7 @@ def usb2op(interface, data=None, reverse=False):
     match=None
     
     try:
-        config=open("/tmp/interfaces","r").read().splitlines())
+        config=open("/tmp/interfaces","r").read().splitlines()
     except:
     	pass
 
@@ -39,15 +39,14 @@ def usb2op(interface, data=None, reverse=False):
         	    return modem.get('ifname')
         else:
             if modem.get('ifname','') == interface:  
-                opnr = config.index(imei)
-                if opnr==-1:
+                if imei not in config:
                 	config.append(imei)
                 opnr = config.index(imei)
                 match = "op%i" % opnr
                 break
                 
     fd=open("/tmp/interfaces", "w") 
-    for line in interfaces:
+    for line in config:
     	fd.write("%s\n" % line) 
     fd.close()
     return match
