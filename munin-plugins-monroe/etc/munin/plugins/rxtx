@@ -38,7 +38,7 @@ else
     echo "${IF}TXMonroe.value $TXNS"
   done
   for IF in "usb0" "usb1" "usb2"; do
-    DATA=$(curl -s 'http://192.168.0.1/goform/goform_get_cmd_process?multi_data=1&cmd=realtime_rx_bytes,realtime_tx_bytes,monthly_rx_bytes,monthly_tx_bytes' -H 'Referer: http://192.168.0.1/index.html' --interface $IF);
+    DATA=$(curl -m 10 -s 'http://192.168.0.1/goform/goform_get_cmd_process?multi_data=1&cmd=realtime_rx_bytes,realtime_tx_bytes,monthly_rx_bytes,monthly_tx_bytes' -H 'Referer: http://192.168.0.1/index.html' --interface $IF);
     if [ ! -z "$(echo $DATA|grep rx_bytes)" ]; then
       RXZTE=$(echo $DATA|jq -r '.realtime_rx_bytes');
       TXZTE=$(echo $DATA|jq -r '.realtime_tx_bytes');
