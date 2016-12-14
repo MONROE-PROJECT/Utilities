@@ -28,7 +28,7 @@ function login {
   export INTERFACE=$1
 
   echo -n "Identifying $INTERFACE... "
-  export ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null | sed -e 's|.*inet \(.*\)/.*|\1|g')
+  export ADDRESS=$(ip -f inet -o addr show $1 2>/dev/null |head -n 1|sed -e 's|.*inet \(.*\)/.*|\1|g')
   export MODEM=$(echo $ADDRESS| sed -e 's/\.[0-9]*$/.1/g')
   echo "$MODEM."
 
