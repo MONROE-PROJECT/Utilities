@@ -30,3 +30,4 @@ tell "IPPortFilterEnable%2CDefaultFirewallPolicy%2CIPPortFilterRules_0%2CIPPortF
 
 tell "PortForwardEnable%2CPortForwardRules_0%2CPortForwardRules_1%2CPortForwardRules_2%2CPortForwardRules_3%2CPortForwardRules_4%2CPortForwardRules_5%2CPortForwardRules_6%2CPortForwardRules_7%2CPortForwardRules_8%2CPortForwardRules_9"
 
+tell "dns_mode%2Cprefer_dns_auto%2Cstandby_dns_auto%2Cprefer_dns_manual%2Cstandby_dns_manual"
