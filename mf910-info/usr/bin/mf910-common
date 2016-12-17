@@ -17,11 +17,7 @@ function setcmd {
       --data $1 
 }
 
-function fetch_wifi {
-  # TODO: we should be able to read this out from mf910-info instead
-  curl -so /tmp/qrcode.png $MODEM/img/qrcode_ssid_wifikey.png
-  zbarimg -q /tmp/qrcode.png | sed -e 's/.*P:\(.*\);$/\1/'
-}
+
 
 function login {
 
@@ -42,7 +38,7 @@ function login {
 
   if [ -z "$ADMINKEY" ]; then
     echo "Missing keys in mifi.$IMEI. Trying wifi key."
-    export WIFIKEY=$(fetch_wifi)
+    export WIFIKEY=$(curl -s -X GET --interface $INTERFACE 'http://'$MODEM'/goform/goform_get_cmd_process?'$MULTI'isTest=false&cmd=WPAPSK1&page=0&data_per_page=500&mem_store=1&tags=10&order_by=order+by+id+desc' -H 'Referer: http://'$MODEM'/index.html' | jq -r .WPAPSK1)
     export ADMINKEY=$WIFIKEY
   fi
   if [ -z "$ADMINKEY" ]; then
