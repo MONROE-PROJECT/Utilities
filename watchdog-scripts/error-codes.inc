@@ -1,0 +1,157 @@
+# This file should be read-only and NOT executable.
+# Intended as include file in /etc/watchdog.d
+
+# Converted from include/watch_err.h
+
+readonly ENOERR=0             # /* no error */
+readonly EREBOOT=255          # /* unconditional reboot (255 = -1 as unsigned 8-bit) */
+readonly ERESET=254           # /* unconditional hard reset */
+readonly EMAXLOAD=253         # /* load average too high */
+readonly ETOOHOT=252          # /* too hot inside */
+readonly ENOLOAD=251          # /* /proc/loadavg contains no data */
+readonly ENOCHANGE=250        # /* file wasn't changed in the given interval */
+readonly EINVMEM=249          # /* /proc/meminfo contains invalid data */
+readonly ECHKILL=248          # /* child was killed by signal */
+readonly ETOOLONG=247         # /* child didn't return in time */
+readonly EUSERVALUE=246       # /* reserved for user error code (246 = -10) */
+readonly EDONTKNOW=245        # /* unknown, not "no error" (i.e. success) but implies test still running */
+
+# Converted from /usr/include/asm-generic/errno-base.h
+
+readonly EPERM=1              # /* Operation not permitted */
+readonly ENOENT=2             # /* No such file or directory */
+readonly ESRCH=3              # /* No such process */
+readonly EINTR=4              # /* Interrupted system call */
+readonly EIO=5                # /* I/O error */
+readonly ENXIO=6              # /* No such device or address */
+readonly E2BIG=7              # /* Argument list too long */
+readonly ENOEXEC=8            # /* Exec format error */
+readonly EBADF=9              # /* Bad file number */
+readonly ECHILD=10            # /* No child processes */
+readonly EAGAIN=11            # /* Try again */
+readonly ENOMEM=12            # /* Out of memory */
+readonly EACCES=13            # /* Permission denied */
+readonly EFAULT=14            # /* Bad address */
+readonly ENOTBLK=15           # /* Block device required */
+readonly EBUSY=16             # /* Device or resource busy */
+readonly EEXIST=17            # /* File exists */
+readonly EXDEV=18             # /* Cross-device link */
+readonly ENODEV=19            # /* No such device */
+readonly ENOTDIR=20           # /* Not a directory */
+readonly EISDIR=21            # /* Is a directory */
+readonly EINVAL=22            # /* Invalid argument */
+readonly ENFILE=23            # /* File table overflow */
+readonly EMFILE=24            # /* Too many open files */
+readonly ENOTTY=25            # /* Not a typewriter */
+readonly ETXTBSY=26           # /* Text file busy */
+readonly EFBIG=27             # /* File too large */
+readonly ENOSPC=28            # /* No space left on device */
+readonly ESPIPE=29            # /* Illegal seek */
+readonly EROFS=30             # /* Read-only file system */
+readonly EMLINK=31            # /* Too many links */
+readonly EPIPE=32             # /* Broken pipe */
+readonly EDOM=33              # /* Math argument out of domain of func */
+readonly ERANGE=34            # /* Math result not representable */
+
+# Converted from /usr/include/asm-generic/errno.h
+
+readonly EDEADLK=35           # /* Resource deadlock would occur */
+readonly ENAMETOOLONG=36      # /* File name too long */
+readonly ENOLCK=37            # /* No record locks available */
+readonly ENOSYS=38            # /* Function not implemented */
+readonly ENOTEMPTY=39         # /* Directory not empty */
+readonly ELOOP=40             # /* Too many symbolic links encountered */
+readonly EWOULDBLOCK=$EAGAIN  # /* Operation would block */
+readonly ENOMSG=42            # /* No message of desired type */
+readonly EIDRM=43             # /* Identifier removed */
+readonly ECHRNG=44            # /* Channel number out of range */
+readonly EL2NSYNC=45          # /* Level 2 not synchronized */
+readonly EL3HLT=46            # /* Level 3 halted */
+readonly EL3RST=47            # /* Level 3 reset */
+readonly ELNRNG=48            # /* Link number out of range */
+readonly EUNATCH=49           # /* Protocol driver not attached */
+readonly ENOCSI=50            # /* No CSI structure available */
+readonly EL2HLT=51            # /* Level 2 halted */
+readonly EBADE=52             # /* Invalid exchange */
+readonly EBADR=53             # /* Invalid request descriptor */
+readonly EXFULL=54            # /* Exchange full */
+readonly ENOANO=55            # /* No anode */
+readonly EBADRQC=56           # /* Invalid request code */
+readonly EBADSLT=57           # /* Invalid slot */
+readonly EDEADLOCK=$EDEADLK   #
+readonly EBFONT=59            # /* Bad font file format */
+readonly ENOSTR=60            # /* Device not a stream */
+readonly ENODATA=61           # /* No data available */
+readonly ETIME=62             # /* Timer expired */
+readonly ENOSR=63             # /* Out of streams resources */
+readonly ENONET=64            # /* Machine is not on the network */
+readonly ENOPKG=65            # /* Package not installed */
+readonly EREMOTE=66           # /* Object is remote */
+readonly ENOLINK=67           # /* Link has been severed */
+readonly EADV=68              # /* Advertise error */
+readonly ESRMNT=69            # /* Srmount error */
+readonly ECOMM=70             # /* Communication error on send */
+readonly EPROTO=71            # /* Protocol error */
+readonly EMULTIHOP=72         # /* Multihop attempted */
+readonly EDOTDOT=73           # /* RFS specific error */
+readonly EBADMSG=74           # /* Not a data message */
+readonly EOVERFLOW=75         # /* Value too large for defined data type */
+readonly ENOTUNIQ=76          # /* Name not unique on network */
+readonly EBADFD=77            # /* File descriptor in bad state */
+readonly EREMCHG=78           # /* Remote address changed */
+readonly ELIBACC=79           # /* Can not access a needed shared library */
+readonly ELIBBAD=80           # /* Accessing a corrupted shared library */
+readonly ELIBSCN=81           # /* .lib section in a.out corrupted */
+readonly ELIBMAX=82           # /* Attempting to link in too many shared libraries */
+readonly ELIBEXEC=83          # /* Cannot exec a shared library directly */
+readonly EILSEQ=84            # /* Illegal byte sequence */
+readonly ERESTART=85          # /* Interrupted system call should be restarted */
+readonly ESTRPIPE=86          # /* Streams pipe error */
+readonly EUSERS=87            # /* Too many users */
+readonly ENOTSOCK=88          # /* Socket operation on non-socket */
+readonly EDESTADDRREQ=89      # /* Destination address required */
+readonly EMSGSIZE=90          # /* Message too long */
+readonly EPROTOTYPE=91        # /* Protocol wrong type for socket */
+readonly ENOPROTOOPT=92       # /* Protocol not available */
+readonly EPROTONOSUPPORT=93   # /* Protocol not supported */
+readonly ESOCKTNOSUPPORT=94   # /* Socket type not supported */
+readonly EOPNOTSUPP=95        # /* Operation not supported on transport endpoint */
+readonly EPFNOSUPPORT=96      # /* Protocol family not supported */
+readonly EAFNOSUPPORT=97      # /* Address family not supported by protocol */
+readonly EADDRINUSE=98        # /* Address already in use */
+readonly EADDRNOTAVAIL=99     # /* Cannot assign requested address */
+readonly ENETDOWN=100         # /* Network is down */
+readonly ENETUNREACH=101      # /* Network is unreachable */
+readonly ENETRESET=102        # /* Network dropped connection because of reset */
+readonly ECONNABORTED=103     # /* Software caused connection abort */
+readonly ECONNRESET=104       # /* Connection reset by peer */
+readonly ENOBUFS=105          # /* No buffer space available */
+readonly EISCONN=106          # /* Transport endpoint is already connected */
+readonly ENOTCONN=107         # /* Transport endpoint is not connected */
+readonly ESHUTDOWN=108        # /* Cannot send after transport endpoint shutdown */
+readonly ETOOMANYREFS=109     # /* Too many references: cannot splice */
+readonly ETIMEDOUT=110        # /* Connection timed out */
+readonly ECONNREFUSED=111     # /* Connection refused */
+readonly EHOSTDOWN=112        # /* Host is down */
+readonly EHOSTUNREACH=113     # /* No route to host */
+readonly EALREADY=114         # /* Operation already in progress */
+readonly EINPROGRESS=115      # /* Operation now in progress */
+readonly ESTALE=116           # /* Stale NFS file handle */
+readonly EUCLEAN=117          # /* Structure needs cleaning */
+readonly ENOTNAM=118          # /* Not a XENIX named type file */
+readonly ENAVAIL=119          # /* No XENIX semaphores available */
+readonly EISNAM=120           # /* Is a named type file */
+readonly EREMOTEIO=121        # /* Remote I/O error */
+readonly EDQUOT=122           # /* Quota exceeded */
+readonly ENOMEDIUM=123        # /* No medium found */
+readonly EMEDIUMTYPE=124      # /* Wrong medium type */
+readonly ECANCELED=125        # /* Operation Canceled */
+readonly ENOKEY=126           # /* Required key not available */
+readonly EKEYEXPIRED=127      # /* Key has expired */
+readonly EKEYREVOKED=128      # /* Key has been revoked */
+readonly EKEYREJECTED=129     # /* Key was rejected by service */
+readonly EOWNERDEAD=130       # /* Owner died */
+readonly ENOTRECOVERABLE=131  # /* State not recoverable */
+readonly ERFKILL=132          # /* Operation not possible due to RF-kill */
+readonly EHWPOISON=133        # /* Memory page has hardware error */
+
