@@ -166,11 +166,11 @@ for IF in $INTERFACES_BR; do
     ip link set dev bridge$IF up;
     brctl addif bridge$IF ${IF}Br;
     ip link set ${IF}Br up;
-
+    $MNS ip addr add 172.18.${IFNUM}.2 dev $OP;
+    $MNS ip link set $OP up;
   fi
   
 done
-
 NODEID=$(cat /etc/nodeid)
 
 for IF in $INTERFACES_PING; do
