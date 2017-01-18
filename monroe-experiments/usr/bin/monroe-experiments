@@ -131,11 +131,6 @@ if [ ! -e /var/run/netns/monroe ]; then
   exit 1;
 fi
 
-if [ -z "$(ps ax|grep multi|grep netns-monroe)" ]; then
-  logger -t monroe-experiments "multi is not started, restarting.";
-  $MNS multi_client -d -c /etc/multi-netns-monroe.yaml;
-fi
-
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 
 INTERFACES="usb0 usb1 usb2 wlan0 eth0";
