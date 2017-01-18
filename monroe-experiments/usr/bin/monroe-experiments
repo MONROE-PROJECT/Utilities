@@ -154,15 +154,31 @@ for IF in $INTERFACES_BR; do
   fi
   if [ -z "$(ip link|grep ${IF}Br)" ]; then
     IFNUM=$(ifnum $IF)
+    IPRANGE=172.18.$IFNUM 
     ip link add ${IF}Br type veth peer name $OP;
     ip link set $OP netns monroe;
     brctl addbr bridge$IF;
-    ip addr add 172.18.${IFNUM}.1/24 dev bridge$IF;
+    ip addr add ${IPRANGE}.1/24 dev bridge$IF;
     ip link set dev bridge$IF up;
     brctl addif bridge$IF ${IF}Br;
     ip link set ${IF}Br up;
-    $MNS ip addr add 172.18.${IFNUM}.2 dev $OP;
+    $MNS ip addr add ${IPRANGE}.2 dev $OP;
     $MNS ip link set $OP up;
+    
+    # Firewall masquerade internal IFBr to IF
+    TARGET="/etc/circle.d/50-$IF-nat.rules"
+    RULES="\${ipt4} -t nat -A POSTROUTING -o ${IF} -j MASQUERADE
+           \${ipt4} -A FORWARD -i ${IF} -o ${IF}Br -m state --state RELATED,ESTABLISHED -j ACCEPT
+           \${ipt4} -A FORWARD -i ${IF}Br -o ${IF} -j ACCEPT" 
+    echo $RULES > $TARGET
+    circle start
+    # Routing IFBr to IF (TBD, check against multi) 
+    # ip route add $OUTRANGE dev $IF table 20
+    # ip route add $IPRANGE.0/24 dev ${IF}Br table 20
+    # ip route add default via ... src ... table 20
+    # ip rule add iif $IF table 20
+    # ip rule add from $IPRANGE.0/24 table 20
+
   fi
   
 done
