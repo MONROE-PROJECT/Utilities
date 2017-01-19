@@ -141,7 +141,7 @@ for IF in $INTERFACES_BR; do
   OP=$(usb2op $IF) || continue
   if [ -z "$(ip link|grep $IF)" ]; then
     $MNS ip link del $OP 2>/dev/null || true;
-    # TODO: del bridge
+    ip link del ${IF}Br; 
     continue;
   fi
   if [ ! -z "$(ip link|grep 'state DOWN'|grep $IF)" ]; then
@@ -157,12 +157,9 @@ for IF in $INTERFACES_BR; do
     IPRANGE=172.18.$IFNUM 
     ip link add ${IF}Br type veth peer name $OP;
     ip link set $OP netns monroe;
-    brctl addbr bridge$IF;
-    ip addr add ${IPRANGE}.1/24 dev bridge$IF;
-    ip link set dev bridge$IF up;
-    brctl addif bridge$IF ${IF}Br;
+    ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
     ip link set ${IF}Br up;
-    $MNS ip addr add ${IPRANGE}.2 dev $OP;
+    $MNS ip addr add ${IPRANGE}.2/24 dev $OP;
     $MNS ip link set $OP up;
     
     # Firewall masquerade internal IFBr to IF
