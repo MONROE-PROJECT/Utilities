@@ -172,12 +172,22 @@ for IF in $INTERFACES_BR; do
            \${ipt4} -A FORWARD -i ${IF}Br -o ${IF} -j ACCEPT" 
     echo $RULES > $TARGET
     circle start
+    
     # Routing IFBr to IF (TBD, check against multi) 
-    # ip route add $OUTRANGE dev $IF table 20
-    # ip route add $IPRANGE.0/24 dev ${IF}Br table 20
-    # ip route add default via ... src ... table 20
-    # ip rule add iif $IF table 20
-    # ip rule add from $IPRANGE.0/24 table 20
+    OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
+    OUTRANGE="${OUTMASK%.*}"
+    ROUTE=$(ip ro get $OUTRANGE) 
+    GATEWAY=$(echo $ROUTE | cut -f3 -d' ') 
+    SOURCE=$(echo $ROUTE | cut -f5 -d' ') 
+    TABLE="10$IFNUM"
+    ip route flush table $TABLE || true
+    ip route add $OUTRANGE dev $IF table $TABLE
+    ip route add $IPRANGE.0/24 dev ${IF}Br table $TABLE
+    ip route add default via $GATEWAY src $SOURCE table $TABLE
+    ip rule delete iif $IF || true
+    ip rule add iif $IF table $TABLE priority 10001
+    ip rule delete from $IPRANGE.0/24 || true
+    ip rule add from $IPRANGE.0/24 table $TABLE priority 10000
 
   fi
   
