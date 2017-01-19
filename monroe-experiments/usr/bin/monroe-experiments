@@ -175,7 +175,7 @@ for IF in $INTERFACES_BR; do
     OUTRANGE="${OUTMASK%.*}"
     ROUTE=$(ip ro get $OUTRANGE) 
     GATEWAY=$(echo $ROUTE | cut -f3 -d' ') 
-    SOURCE=$(echo $ROUTE | cut -f5 -d' ') 
+    SOURCE=$(echo $ROUTE | cut -f7 -d' ') 
     TABLE="10$IFNUM"
     ip route flush table $TABLE || true
     ip route add $OUTRANGE dev $IF table $TABLE
