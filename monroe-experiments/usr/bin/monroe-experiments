@@ -170,7 +170,7 @@ for IF in $INTERFACES_BR; do
     RULES="\${ipt4} -t nat -A POSTROUTING -o ${IF} -j MASQUERADE
            \${ipt4} -A FORWARD -i ${IF} -o ${IF}Br -m state --state RELATED,ESTABLISHED -j ACCEPT
            \${ipt4} -A FORWARD -i ${IF}Br -o ${IF} -j ACCEPT" 
-    echo $RULES > $TARGET
+    echo "$RULES" > $TARGET
     circle start
     
     # Routing IFBr to IF (TBD, check against multi) 
