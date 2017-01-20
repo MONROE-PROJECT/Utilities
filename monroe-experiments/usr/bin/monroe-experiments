@@ -153,6 +153,7 @@ for IF in $INTERFACES_BR; do
     continue;
   fi
   if [ -z "$(ip link|grep ${IF}Br)" ]; then
+    # cf http://blogs.igalia.com/dpino/2016/04/10/network-namespaces/
     IFNUM=$(ifnum $IF)
     IPRANGE=172.18.$IFNUM 
     ip link add ${IF}Br type veth peer name $OP;
@@ -161,6 +162,7 @@ for IF in $INTERFACES_BR; do
     ip link set ${IF}Br up;
     $MNS ip addr add ${IPRANGE}.2/24 dev $OP;
     $MNS ip link set $OP up;
+    #$MNS ip ro add default via ${IPRANGE}.1
     
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
@@ -172,6 +174,7 @@ for IF in $INTERFACES_BR; do
     circle start
     
     # Routing IFBr to IF (TBD, check against multi) 
+    # cf http://unix.stackexchange.com/questions/209031/nat-box-with-multiple-internal-and-external-interfaces
     OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
     OUTRANGE="${OUTMASK%.*}"
     ROUTE=$(ip ro get $OUTRANGE) 
