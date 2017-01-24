@@ -3,6 +3,7 @@ set -e
 
 export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 PING_TARGET=193.10.227.25 # may be overwritten by defaults
+VETH_IPRANGE=172.18
 
 . /etc/default/monroe-experiments
 
@@ -46,6 +47,13 @@ function ifnum {
     -e 's/-usb/4/g' \
     -e 's/-wlan/5/g' \
     -e 's/^0*//g'
+}
+
+function iftable {
+  for i in $(seq 1 9); do
+    ROUTE=$(ip ro show table $i)
+    if [[ $ROUTE == *"dev $1"* ]]; then echo $i; break; fi
+  done
 }
 
 ##############################################################################
@@ -133,7 +141,6 @@ fi
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 
-INTERFACES="usb0 usb1 usb2 wlan0 eth0";
 INTERFACES_BR=$(modems | jq -r .[].ifname)
 INTERFACES_PING="op0 op1 op2";
 
@@ -141,7 +148,6 @@ for IF in $INTERFACES_BR; do
   OP=$(usb2op $IF) || continue
   if [ -z "$(ip link|grep $IF)" ]; then
     $MNS ip link del $OP 2>/dev/null || true;
-    ip link del ${IF}Br; 
     continue;
   fi
   if [ ! -z "$(ip link|grep 'state DOWN'|grep $IF)" ]; then
@@ -155,7 +161,13 @@ for IF in $INTERFACES_BR; do
   if [ -z "$(ip link|grep ${IF}Br)" ]; then
     # cf http://blogs.igalia.com/dpino/2016/04/10/network-namespaces/
     IFNUM=$(ifnum $IF)
-    IPRANGE=172.18.$IFNUM 
+    TABLE=$(iftable $IF)
+    if [ -z "$TABLE" ]; then continue; fi
+    IPRANGE=$VETH_IPRANGE.$IFNUM 
+    OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
+    OUTRANGE="${OUTMASK%.*}"
+
+    # create veth interface pair
     ip link add ${IF}Br type veth peer name $OP;
     ip link set $OP netns monroe;
     ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
@@ -167,29 +179,24 @@ for IF in $INTERFACES_BR; do
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
     RULES="\
-\${ipt4} -t nat -A POSTROUTING -o ${IF} -j MASQUERADE
-\${ipt4} -A FORWARD -i ${IF} -o ${IF}Br -m state --state RELATED,ESTABLISHED -j ACCEPT
-\${ipt4} -A FORWARD -i ${IF}Br -o ${IF} -j ACCEPT" 
+\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
+\${ipt4} -I FORWARD 1 -i ${IF} -o ${IF}Br -j ACCEPT
+\${ipt4} -I FORWARD 1 -i ${IF}Br -o ${IF} -j ACCEPT" 
     echo "$RULES" > $TARGET
     circle start
     
-    # Routing IFBr to IF (TBD, check against multi) 
-    # cf http://unix.stackexchange.com/questions/209031/nat-box-with-multiple-internal-and-external-interfaces
-    OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
-    OUTRANGE="${OUTMASK%.*}"
-    ROUTE=$(ip ro get $OUTRANGE) 
-    GATEWAY=$(echo $ROUTE | cut -f3 -d' ')  # Fixme, can fail on column format
-    SOURCE=$(echo $ROUTE | cut -f7 -d' ')   # fixme
-    TABLE="10$IFNUM"
-    ip route flush table $TABLE || true
-    ip route add $OUTRANGE dev $IF table $TABLE
-    ip route add $IPRANGE.0/24 dev ${IF}Br table $TABLE
-    ip route add default via $GATEWAY src $SOURCE table $TABLE
-    ip rule delete iif $IF || true
-    ip rule add iif $IF table $TABLE priority 10001
-    ip rule delete from $IPRANGE.0/24 || true
-    ip rule add from $IPRANGE.0/24 table $TABLE priority 10001
+    # Routing OP to gateway in netns monroe
+    $MNS ip ro flush table $TABLE || true
+    $MNS ip ro add default via ${IPRANGE}.1 table $TABLE 
+    for cmd in "del" "add"; do
+      $MNS ip ru $cmd from ${IPRANGE}.2 lookup $TABLE priority 10000 || true
+      $MNS ip ru $cmd from all to ${IPRANGE}.2/24 lookup $TABLE priority 20000 || true
+      $MNS ip ru $cmd from all iif lo lookup $TABLE priority 91000 || true
+    done
 
+    # Routing IFBr to IF in host (using multi tables) 
+    ip rule delete from $IPRANGE.1/24 || true
+    ip rule add from $IPRANGE.1/24 table $TABLE priority 10000
   fi
   
 done
