@@ -159,7 +159,6 @@ for IF in $INTERFACES_BR; do
     continue;
   fi
   if [ -z "$(ip link|grep ${IF}Br)" ]; then
-    # cf http://blogs.igalia.com/dpino/2016/04/10/network-namespaces/
     IFNUM=$(ifnum $IF)
     TABLE=$(iftable $IF)
     if [ -z "$TABLE" ]; then continue; fi
@@ -168,13 +167,14 @@ for IF in $INTERFACES_BR; do
     OUTRANGE="${OUTMASK%.*}"
 
     # create veth interface pair
-    ip link add ${IF}Br type veth peer name $OP;
-    ip link set $OP netns monroe;
+    ip link del montmp || true;
+    ip link add ${IF}Br type veth peer name montmp;
+    ip link set montmp netns monroe;
+    ip link set montmp name $OP; 
     ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
     ip link set ${IF}Br up;
     $MNS ip addr add ${IPRANGE}.2/24 dev $OP;
     $MNS ip link set $OP up;
-    #$MNS ip ro add default via ${IPRANGE}.1
     
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
