@@ -170,9 +170,9 @@ for IF in $INTERFACES_BR; do
     ip link del montmp || true;
     ip link add ${IF}Br type veth peer name montmp;
     ip link set montmp netns monroe;
-    ip link set montmp name $OP; 
     ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
     ip link set ${IF}Br up;
+    $MNS ip link set montmp name $OP; 
     $MNS ip addr add ${IPRANGE}.2/24 dev $OP;
     $MNS ip link set $OP up;
     
