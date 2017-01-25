@@ -146,19 +146,19 @@ INTERFACES_PING="op0 op1 op2";
 
 for IF in $INTERFACES_BR; do
   OP=$(usb2op $IF) || continue
-  if [ -z "$(ip link|grep $IF)" ]; then
+  if [ -z "$(ip link|grep ${IF}:)" ]; then
     $MNS ip link del $OP 2>/dev/null || true;
     continue;
   fi
-  if [ ! -z "$(ip link|grep 'state DOWN'|grep $IF)" ]; then
+  if [ ! -z "$(ip link|grep 'state DOWN'|grep ${IF}:)" ]; then
     $MNS ip link set $OP down 2>/dev/null || true;
     continue;
   fi
-  if [ ! -z "$($MNS ip link|grep $OP)" ]; then
+  if [ ! -z "$($MNS ip link|grep ${OP}@)" ]; then
     $MNS ip link set $OP up;
     continue;
   fi
-  if [ -z "$(ip link|grep ${IF}Br)" ]; then
+  if [ -z "$(ip link|grep ${IF}Br:)" ]; then
     IFNUM=$(ifnum $IF)
     TABLE=$(iftable $IF)
     if [ -z "$TABLE" ]; then continue; fi
@@ -168,6 +168,7 @@ for IF in $INTERFACES_BR; do
 
     # create veth interface pair
     ip link del montmp || true;
+    ip link del ${IF}Br || true;
     ip link add ${IF}Br type veth peer name montmp;
     ip link set montmp netns monroe;
     ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
