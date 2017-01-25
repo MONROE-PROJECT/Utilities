@@ -28,8 +28,6 @@ def usb2op(interface, data=None, reverse=False):
         rimei=config[index]
     
     for modem in data:
-        if modem.get('ifname') == 'wwan0':
-            continue
         imei = modem.get('imei')
         if imei is None:
         	continue
