@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# stop all running containers, to force a reset of the network namespace
+docker stop -t 0 $(docker ps -q) || true
