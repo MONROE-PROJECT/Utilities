@@ -13,7 +13,7 @@ def get_interfaces():
 
     modems=[]
     for modem in data:
-        iccid = modem.get('iccid')
+        iccid = modem.get('iccid', modem.get('mac','n/a'))
         op    = usb2op(modem.get('ifname'), data=data)
         if op is not None:
             try:
