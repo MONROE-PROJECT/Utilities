@@ -4,5 +4,4 @@ Section: devel
 Priority: optional
 Architecture: amd64
 Maintainer: support@celerway.com
-Depends: linux-image-4.6.0-0.bpo.1-amd64 | linux-image-4.7.0-0.bpo.1-amd64 
 Description: Kernel module updates for cdc_ether and rndis_host that set random mac addresses on MF910 modems
