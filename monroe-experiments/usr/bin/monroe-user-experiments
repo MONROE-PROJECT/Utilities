@@ -17,7 +17,7 @@ for f in $USERDIR/*; do
   STATS=$(eval "rsync $USER_RSYNC $f/ $USER_REPO:$USER_TODIR/$SCHEDID")
   SENT=$(echo "$STATS"|grep 'sent:'|sed -e 's/.*: //g')
   RECV=$(echo "$STATS"|grep 'received:'|sed -e 's/.*: //g')
-  TOTAL=$(($SENT + $RECV))
+  TOTAL=$((${SENT//,} + ${RECV//,}))
 
   echo "$SENT sent, $RECV received, $TOTAL total."
 
