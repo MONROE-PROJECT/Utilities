@@ -1,5 +1,6 @@
 #!/bin/sh
 
+rm /tmp/metadata.db || true
 systemctl enable metadata-exporter || true
 systemctl start  metadata-exporter || true
 systemctl enable metadata-timeloop || true
