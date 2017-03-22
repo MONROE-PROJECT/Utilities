@@ -165,6 +165,8 @@ for IF in $INTERFACES_BR; do
     IPRANGE=$VETH_IPRANGE.$IFNUM 
     OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
     OUTRANGE="${OUTMASK%.*}"
+    OUTADDR="${OUTMASK%/*}"
+#    GATEWAY=$(ip ro show table all|grep $OUTRANGE|grep default|head -n 1|cut -f3 -d' ')
 
     # create veth interface pair
     ip link del montmp || true;
@@ -179,8 +181,9 @@ for IF in $INTERFACES_BR; do
     
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
+#\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
     RULES="\
-\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
+\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j SNAT --to-source ${OUTADDR}
 \${ipt4} -I FORWARD 1 -i ${IF} -o ${IF}Br -j ACCEPT
 \${ipt4} -I FORWARD 1 -i ${IF}Br -o ${IF} -j ACCEPT" 
     echo "$RULES" > $TARGET
