@@ -4,6 +4,9 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 . /etc/default/monroe-experiments
 
+# do not run rsync if a user experiment is running
+experiments && exit 1
+
 docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
 
 docker pull $URL_NOOP
