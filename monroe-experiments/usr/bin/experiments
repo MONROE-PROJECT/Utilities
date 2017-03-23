@@ -1,0 +1,7 @@
+#!/bin/bash
+
+GUIDS=$(sudo docker ps --format {{.Image}} | grep 'monroe-')
+echo "$GUIDS"
+
+[[ ! -z "$GUIDS" ]]
+exit $?
