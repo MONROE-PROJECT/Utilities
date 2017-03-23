@@ -1,0 +1,9 @@
+#!/bin/bash
+
+function join { local IFS="$1"; shift; echo "$*"; }
+
+GUIDS=$(join , $(sudo docker ps --format {{.Image}} | grep 'monroe-'))
+echo "$GUIDS"
+
+[[ ! -z "$GUIDS" ]]
+exit $?
