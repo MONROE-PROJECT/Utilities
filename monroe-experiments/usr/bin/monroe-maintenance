@@ -1,0 +1,21 @@
+#!/bin/bash
+
+export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /etc/default/monroe-experiments
+
+echo 1 > /monroe/maintenance/enabled
+echo "routine maintenance window" > /monroe/maintenance/reason
+
+docker stop -t 0 $(docker ps -q) || true
+systemctl stop docker || true
+
+grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
+
+rm -r /experiments/monroe/*
+rm -r /experiments/user/*
+
+echo 0 > /monroe/maintenance/enabled
+rm /monroe/maintenance/reason
+biteback -f
+monroe-experiments
