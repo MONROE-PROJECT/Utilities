@@ -8,6 +8,10 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 # do not run rsync if a user experiment is running
 experiments && exit 1 
 
+# do not run rsync if in development mode
+DEVELOPMENT=$(cat /monroe/development/enabled || echo 0)
+[ $DEVELOPMENT -eq 1 ] && exit 1
+
 SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 RSYNC_PARMS="-r -z --exclude 'tstat/' --include '*/' --include '*.json' --include '*.xz' --include '*.gz' --exclude '*' --prune-empty-dirs"
 RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $BASEDIR/ $REPO:$TODIR"
