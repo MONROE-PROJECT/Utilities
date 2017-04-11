@@ -3,7 +3,7 @@ WantedBy=multi-user.target
 
 [Unit]
 Description=Metadata Exporter
-After=network.target
+After=network.target docker.service
 
 [Service]
 ExecStart=/usr/sbin/metadata-exporter -c /etc/metadata-exporter.conf
