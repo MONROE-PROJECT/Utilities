@@ -182,9 +182,9 @@ for IF in $INTERFACES_BR; do
     
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
-#\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
+#\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j SNAT --to-source ${OUTADDR}
     RULES="\
-\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j SNAT --to-source ${OUTADDR}
+\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
 \${ipt4} -I FORWARD 1 -i ${IF} -o ${IF}Br -j ACCEPT
 \${ipt4} -I FORWARD 1 -i ${IF}Br -o ${IF} -j ACCEPT" 
     echo "$RULES" > $TARGET
