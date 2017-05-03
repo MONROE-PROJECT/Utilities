@@ -12,8 +12,7 @@ systemctl stop docker || true
 
 grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
 
-rm -r /experiments/monroe/*
-rm -r /experiments/user/*
+#  TODO: clean experiments directories without deleting ongoing/future tasks
 
 echo 0 > /monroe/maintenance/enabled
 rm /monroe/maintenance/reason
