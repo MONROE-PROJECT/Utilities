@@ -10,10 +10,20 @@ echo "routine maintenance window" > /monroe/maintenance/reason
 docker stop -t 0 $(docker ps -q) || true
 systemctl stop docker || true
 
-# TODO: clean experiments directories without deleting ongoing/future tasks
-# grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
+# unmount and delete all folders in /experiments
+grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
+rm -r /experiments/monroe/*
+rm -r /experiments/user/*
 
 echo 0 > /monroe/maintenance/enabled
 rm /monroe/maintenance/reason
+
+# check for issues and restore maintenance flag
 biteback -f
+
+# redeploy and start continuous base experiments
 monroe-experiments
+
+# redeploy and schedule user experiments
+atrm $(atq | cut -f1)
+systemctl restart marvind
