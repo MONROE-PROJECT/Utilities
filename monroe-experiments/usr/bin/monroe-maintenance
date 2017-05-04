@@ -10,9 +10,8 @@ echo "routine maintenance window" > /monroe/maintenance/reason
 docker stop -t 0 $(docker ps -q) || true
 systemctl stop docker || true
 
-grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
-
-#  TODO: clean experiments directories without deleting ongoing/future tasks
+# TODO: clean experiments directories without deleting ongoing/future tasks
+# grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
 
 echo 0 > /monroe/maintenance/enabled
 rm /monroe/maintenance/reason
