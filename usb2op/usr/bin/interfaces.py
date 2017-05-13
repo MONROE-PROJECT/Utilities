@@ -36,4 +36,4 @@ def get_interfaces():
     return modems
 
 if __name__=="__main__":
-    print json.dumps(get_interfaces())
+    print json.dumps(get_interfaces(), indent=2, sort_keys=True)
