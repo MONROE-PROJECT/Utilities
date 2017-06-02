@@ -1,8 +1,5 @@
 BASEDIR=/experiments/monroe/
-URL_NOOP=monroe/noop
-URL_PING=monroe1.cs.kau.se:5000/monroe/ping
-URL_METADATA=monroe1.cs.kau.se:5000/monroe/metadata-subscriber
-URL_MPLANE=monroe/mplane
+URL_BASE_EXPERIMENTS=""
 MPLANE_PASSWORD="<filled in from configuration>"
 
 REPO=rsync@repo.monroe-system.eu
