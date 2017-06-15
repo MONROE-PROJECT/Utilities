@@ -112,9 +112,7 @@ CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 
 if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any running containers
-  if [ ! -z "$CID" ]; then
-    docker stop -t 0 $CID;
-  fi
+  docker stop -t 0 $CID;
   # stop any multi client running in that namespace
   pgrep -f multi-netns-monroe | xargs -r kill
 
