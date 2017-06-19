@@ -113,8 +113,6 @@ CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any running containers
   docker stop -t 0 $(docker ps -q) || true;
-  # stop any multi client running in that namespace
-  pgrep -f multi-netns-monroe | xargs -r kill
 
   docker run -d --net=bridge $URL_NOOP;
   CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
@@ -136,6 +134,11 @@ fi
 if [ ! -e /var/run/netns/monroe ]; then
   logger -t monroe-experiments "Network namespace is missing.";
   exit 1;
+fi
+
+if [ -z "$(ps ax|grep dnsmasq|grep dnsmasq-monroe)"]; then
+  logger -t monroe-experiments "dnsmasq is not started, restarting."
+  $MNS /usr/sbin/dnsmasq -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq -7 /etc/dnsmasq.d,.dpkg-dist,.dpkg-old,.dpkg-new --local-service
 fi
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
@@ -197,7 +200,7 @@ for IF in $INTERFACES_BR; do
       $MNS ip ru $cmd from all iif lo lookup $TABLE priority 91000 || true
     done
 
-    # Routing IFBr to IF in host (using multi tables) 
+    # Routing IFBr to IF in host (using table allocator tables) 
     ip rule delete from $IPRANGE.1/24 || true
     ip rule add from $IPRANGE.1/24 table $TABLE priority 10000
   fi
