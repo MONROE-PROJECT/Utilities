@@ -150,7 +150,7 @@ fi
 
 DNS_CHANGED=$(update_dnsmasq_conf)
 
-if [ -z "$(ps ax|grep dnsmasq|grep dnsmasq-monroe)" ]; then
+if [ -z "$(pgrep -f dnsmasq-monroe)" ]; then
   logger -t monroe-experiments "dnsmasq is not started, restarting."
   $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-netns-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
 elif [ ! -z "$DNS_CHANGED" ]; then
