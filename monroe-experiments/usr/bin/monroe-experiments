@@ -56,6 +56,18 @@ function iftable {
   done
 }
 
+function update_dnsmasq_conf {
+  # create regex to replace interface names
+  TRANSLATE=$(for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do echo "s/$i/$(usb2op $i)/g"; done)
+
+  cp /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
+  cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file > /tmp/dnsmasq-servers-netns-monroe.conf
+  sed -e $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-monroe.conf
+
+  # return non-empty if the files differ, or the bak file does not exist
+  diff /tmp/dnsmasq-servers-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 
+}
+
 ##############################################################################
 
 MAINTENANCE=$(cat /monroe/maintenance/enabled || echo 0)
@@ -136,9 +148,13 @@ if [ ! -e /var/run/netns/monroe ]; then
   exit 1;
 fi
 
+DNS_CHANGED=$(update_dnsmasq_conf)
+
 if [ -z "$(ps ax|grep dnsmasq|grep dnsmasq-monroe)"]; then
   logger -t monroe-experiments "dnsmasq is not started, restarting."
-  $MNS /usr/sbin/dnsmasq -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq -7 /etc/dnsmasq.d,.dpkg-dist,.dpkg-old,.dpkg-new --local-service
+  $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
+elif [ ! -z "$DNS_CHANGED" ]; then
+  kill -HUP $(echo /run/dnsmasq/dnsmasq-monroe.pid)
 fi
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
