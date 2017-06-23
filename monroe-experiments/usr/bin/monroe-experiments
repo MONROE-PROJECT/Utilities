@@ -58,11 +58,11 @@ function iftable {
 
 function update_dnsmasq_conf {
   # create regex to replace interface names
-  TRANSLATE=$(for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do echo "s/$i/$(usb2op $i)/g"; done)
+  TRANSLATE=$(for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do echo " -e s/$i/$(usb2op $i)/g"; done)
 
   cp /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
   cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file > /tmp/dnsmasq-servers-netns-monroe.conf
-  sed -e $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
+  sed $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
 
   # return non-empty if the files differ, or the bak file does not exist
   diff /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 || true
