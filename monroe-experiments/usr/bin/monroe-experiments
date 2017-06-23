@@ -62,10 +62,10 @@ function update_dnsmasq_conf {
 
   cp /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
   cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file > /tmp/dnsmasq-servers-netns-monroe.conf
-  sed -e $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-monroe.conf
+  sed -e $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
 
   # return non-empty if the files differ, or the bak file does not exist
-  diff /tmp/dnsmasq-servers-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 
+  diff /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 || true
 }
 
 ##############################################################################
@@ -152,7 +152,7 @@ DNS_CHANGED=$(update_dnsmasq_conf)
 
 if [ -z "$(ps ax|grep dnsmasq|grep dnsmasq-monroe)"]; then
   logger -t monroe-experiments "dnsmasq is not started, restarting."
-  $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
+  $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-netns-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
 elif [ ! -z "$DNS_CHANGED" ]; then
   kill -HUP $(echo /run/dnsmasq/dnsmasq-monroe.pid)
 fi
