@@ -50,10 +50,22 @@ function ifnum {
 }
 
 function iftable {
-  for i in $(seq 1 9); do
+  for i in $(seq 10000 10009); do
     ROUTE=$(ip ro show table $i)
     if [[ $ROUTE == *"dev $1"* ]]; then echo $i; break; fi
   done
+}
+
+function update_dnsmasq_conf {
+  # create regex to replace interface names
+  TRANSLATE=$(for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do echo " -e s/$i/$(usb2op $i)/g"; done)
+
+  cp /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
+  cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file > /tmp/dnsmasq-servers-netns-monroe.conf
+  sed $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
+
+  # return non-empty if the files differ, or the bak file does not exist
+  diff /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 || true
 }
 
 ##############################################################################
@@ -113,8 +125,6 @@ CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
 if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any running containers
   docker stop -t 0 $(docker ps -q) || true;
-  # stop any multi client running in that namespace
-  pgrep -f multi-netns-monroe | xargs -r kill
 
   docker run -d --net=bridge $URL_NOOP;
   CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
@@ -136,6 +146,15 @@ fi
 if [ ! -e /var/run/netns/monroe ]; then
   logger -t monroe-experiments "Network namespace is missing.";
   exit 1;
+fi
+
+DNS_CHANGED=$(update_dnsmasq_conf)
+
+if [ -z "$(pgrep -f dnsmasq-monroe)" ]; then
+  logger -t monroe-experiments "dnsmasq is not started, restarting."
+  $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-netns-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
+elif [ ! -z "$DNS_CHANGED" ]; then
+  kill -HUP $(echo /run/dnsmasq/dnsmasq-monroe.pid) || true
 fi
 
 CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
@@ -197,7 +216,7 @@ for IF in $INTERFACES_BR; do
       $MNS ip ru $cmd from all iif lo lookup $TABLE priority 91000 || true
     done
 
-    # Routing IFBr to IF in host (using multi tables) 
+    # Routing IFBr to IF in host (using table allocator tables) 
     ip rule delete from $IPRANGE.1/24 || true
     ip rule add from $IPRANGE.1/24 table $TABLE priority 10000
   fi
