@@ -41,15 +41,10 @@ function mk_disk {
   fi
 }
 
-function ipa_monroe {
-  # return the ip address for a given interface in netns monroe
-  # $1 - netns monroe interface name (e.g op0)
-  ip netns exec monroe ip -f inet -o addr show $1|cut -d\  -f 7 | cut -d/ -f 1
-}
-
 function ifnum {
   # generate a unique static IP for each interface name
   # $1 - interface name (e.g wwan0)
+  echo -n "$VETH_IPRANGE."
   echo $1 | sed -e 's/\([^0-9]\+\)\([0-9]\+\)/\2-\1/g' \
     -e 's/-wwan/1/g' \
     -e 's/-ppp/2/g' \
@@ -74,7 +69,7 @@ function update_dnsmasq_conf {
   TRANSLATE=""
   for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do 
     OPIF=$(usb2op $i)
-    IPAD=$(ipa_monroe $OPIF)
+    IPAD=$(ifnum $i)
     TRANSLATE="$TRANSLATE -e s/[0-9.]\+@$i/$IPAD@$OPIF/g"
   done
 
@@ -195,10 +190,9 @@ for IF in $INTERFACES_BR; do
     continue;
   fi
   if [ -z "$(ip link|grep ${IF}Br:)" ]; then
-    IFNUM=$(ifnum $IF)
+    IPRANGE=$(ifnum $IF)
     TABLE=$(iftable $IF)
     if [ -z "$TABLE" ]; then continue; fi
-    IPRANGE=$VETH_IPRANGE.$IFNUM 
     OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
     OUTRANGE="${OUTMASK%.*}"
     OUTADDR="${OUTMASK%/*}"
