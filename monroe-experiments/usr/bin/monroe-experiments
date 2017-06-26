@@ -69,7 +69,7 @@ function update_dnsmasq_conf {
   TRANSLATE=""
   for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do 
     OPIF=$(usb2op $i)
-    IPAD=$(ifnum $i)
+    IPAD=$(ifnum $i).255
     TRANSLATE="$TRANSLATE -e s/[0-9.]\+@$i/$IPAD@$OPIF/g"
   done
 
