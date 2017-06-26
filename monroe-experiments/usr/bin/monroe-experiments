@@ -8,6 +8,8 @@ VETH_IPRANGE=172.18
 . /etc/default/monroe-experiments
 
 function mk_disk {
+  # create and mount a base expereriment lvm disk
+  # $1 - unique disk name
   mkdir -p $BASEDIR/$1
   if mountpoint -q $BASEDIR/$1; then
     echo "$1 outdir is mounted."
@@ -39,7 +41,15 @@ function mk_disk {
   fi
 }
 
+function ipa_monroe {
+  # return the ip address for a given interface in netns monroe
+  # $1 - netns monroe interface name (e.g op0)
+  ip netns exec monroe ip -f inet -o addr show $1|cut -d\  -f 7 | cut -d/ -f 1
+}
+
 function ifnum {
+  # generate a unique static IP for each interface name
+  # $1 - interface name (e.g wwan0)
   echo $1 | sed -e 's/\([^0-9]\+\)\([0-9]\+\)/\2-\1/g' \
     -e 's/-wwan/1/g' \
     -e 's/-ppp/2/g' \
@@ -50,6 +60,8 @@ function ifnum {
 }
 
 function iftable {
+  # return the routing table that holds routing data for a given interface
+  # $1 - interface name (e.g wwan0)
   for i in $(seq 10000 10009); do
     ROUTE=$(ip ro show table $i)
     if [[ $ROUTE == *"dev $1"* ]]; then echo $i; break; fi
@@ -58,11 +70,17 @@ function iftable {
 
 function update_dnsmasq_conf {
   # create regex to replace interface names
-  TRANSLATE=$(for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do echo " -e s/$i/$(usb2op $i)/g"; done)
+  # no parameters, copies and replaces a file in /tmp
+  TRANSLATE=""
+  for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do 
+    OPIF=$(usb2op $i)
+    IPAD=$(ipa_monroe $OPIF)
+    TRANSLATE="$TRANSLATE -e s/[0-9.]\+@$i/$IPAD@$OPIF/g"
+  done
 
-  cp /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
+  mv /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
   cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file > /tmp/dnsmasq-servers-netns-monroe.conf
-  sed $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
+  sed $TRANSLATE /tmp/dnsmasq-servers-good.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
 
   # return non-empty if the files differ, or the bak file does not exist
   diff /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 || true
