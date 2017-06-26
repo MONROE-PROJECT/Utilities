@@ -5,7 +5,7 @@
 ##        interface = interface to monitor
 
 BASEDIR=$1
-SQLPREFIX=$2
+NSMONROE=$2
 MONTH=$(date +%Y-%m)
 DIR=$BASEDIR/$MONTH
 
@@ -18,7 +18,6 @@ EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
 if [ -z "$EXPERIMENT" ]; then
   EXPERIMENT=$(docker ps -a --format {{.Image}} | grep 'monroe-' | head -n 1)
 fi
-## TODO: identify active experiment, if there are several
 if [ ! -z "$EXPERIMENT" ]; then
   SCHEDID=${EXPERIMENT##*-}
   EXCONFIG=$(cat /experiments/user/$SCHEDID.conf 2>/dev/null)
@@ -37,7 +36,7 @@ for IF in "${@:3}"; do
   fi
 
   MNS=""
-  if [ ! -z "$SQLPREFIX" ]; then
+  if [ ! -z "$NSMONROE" ]; then
     OP=$(usb2op $IF)
     if [ -z "$OP" ]; then
       continue
@@ -69,12 +68,12 @@ for IF in "${@:3}"; do
       echo $TXT > $DIR/$IM.tx.total
       echo $(($RXT + $TXT)) > $DIR/$IM.total
 
-      if [ ! -z "$SQLPREFIX" ]; then
+      if [ ! -z "$NSMONROE" ]; then
         if (( $RXD > 0 )) || (( $TXD > 0 )); then
 
-          # NOTE: SQLPrefix is set only for the experiment namespace, to
-          # report data usage not captured by network listener
-          # We use this condition to report to SQL and the experiment folder
+          # NOTE: NSMONORE is set only for the experiment namespace
+          # If it is set, we account data on the internal interfaces. 
+          # This is used for quota checking.
 
 
           if [ ! -z "$EXPERIMENT" ]; then
@@ -97,12 +96,6 @@ for IF in "${@:3}"; do
             fi
           fi
 
-          if [ ! -z "$MODEMDATA" ]; then
-            IMEI=$(echo $MODEMDATA | jq -r .imei)
-            IMSI=$(echo $MODEMDATA | jq -r .imsi)
-            NOW=$(date +%s) # TODO: should be start, not end.
-            echo "INSERT INTO DataUse(DeviceId,SimCardIccid,SimCardImsi,Timestamp,RxData,TxData) VALUES('$IMEI','$IM','$IMSI',FROM_UNIXTIME($NOW),$RXD,$TXD) ON DUPLICATE KEY UPDATE RxData=RxData+$RXD, TxData=TxData+$TXD;" > ${SQLPREFIX}${NOW}.sql
-          fi
         fi
       fi
     fi
