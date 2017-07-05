@@ -1,0 +1,5 @@
+# /etc/cron.d/ice-watchdog
+# reboot system if an ICE modem goes stale
+
+*/1 * * * *   root    /usr/bin/ice-watchdog
+

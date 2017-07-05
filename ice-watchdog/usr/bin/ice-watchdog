@@ -1,0 +1,20 @@
+#!/bin/bash
+
+REBOOTED_FLAG="/.ice_rebooted"
+
+# Any USB device with vid 22d3, but a pid unlike 9061 is faulty.
+ANY_ICE_MODEMS=$(lsusb | grep "22d3\:")
+if [ ! -z "$ANY_ICE_MODEMS" ]; then
+    FAULTY_ICE_MODEMS=$(echo $ANY_ICE_MODEMS | grep -v "9061 | head -n 1")
+
+    if [ ! -z "$FAULTY_ICE_MODEMS" ]; then
+        if [ ! -e $REBOOTED_FLAG ]; then
+            echo $(date +%s) > $REBOOTED_FLAG
+            logger -t ice-watchdog "Faulty ICE modem found with vid:pid $FAULTY_ICE_MODEMS. Rebooting."
+            reboot
+        fi
+    else 
+        rm $REBOOTED_FLAG && logger -t ice-watchdog "ICE modem recovered. Removing reboot flag."
+    fi
+fi
+
