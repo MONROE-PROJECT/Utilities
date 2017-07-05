@@ -11,7 +11,7 @@ if [ ! -z "$ANY_ICE_MODEMS" ]; then
         if [ ! -e $REBOOTED_FLAG ]; then
             echo $(date +%s) > $REBOOTED_FLAG
             logger -t ice-watchdog "Faulty ICE modem found with vid:pid $FAULTY_ICE_MODEMS. Rebooting."
-            reboot
+            /sbin/shutdown -r
         fi
     else 
         rm $REBOOTED_FLAG && logger -t ice-watchdog "ICE modem recovered. Removing reboot flag."
