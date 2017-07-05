@@ -2,8 +2,8 @@
 
 REBOOTED_FLAG="/.ice_rebooted"
 
-# Any USB device with vid 22d3, but a pid unlike 9061 is faulty.
-ANY_ICE_MODEMS=$(lsusb | grep "22d3\:")
+# Any USB device with vid 22de, but a pid unlike 9061 is faulty.
+ANY_ICE_MODEMS=$(lsusb | grep "22de\:")
 if [ ! -z "$ANY_ICE_MODEMS" ]; then
     FAULTY_ICE_MODEMS=$(echo $ANY_ICE_MODEMS | grep -v "9061 | head -n 1")
 
