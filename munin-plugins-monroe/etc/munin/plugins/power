@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title PCI power draw";
+  echo "power.label PCI power draw (W)";
+  echo "power.warning 12";
+  echo "power.critical 24";
+else
+  WATT=$(sensors -u 2>/dev/null|grep power1_average|cut -d ':' -f2|xargs);
+  echo "power.value $WATT";
+fi
