@@ -1,5 +1,0 @@
-#!/bin/sh
-
-systemctl stop    tuptime || true
-systemctl disable tuptime || true
-

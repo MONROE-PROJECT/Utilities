@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# transform the latest tuptime entry into a format "$count 1", currently
-# ignoring the boot count multiplier (sqlite will run out of integers at
-# the same time.
-BOOTCNT=$(/usr/bin/tuptime -t | /usr/bin/tail -n1 | /bin/sed -e "s/ .*/ 1/g")
-if [ ! -z "$BOOTCNT" ]; then
-  echo $BOOTCNT > /etc/bootcnt
-fi
