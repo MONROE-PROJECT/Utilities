@@ -43,10 +43,14 @@ def usb2op(interface, data=None, reverse=False):
                 match = "op%i" % opnr
                 break
                 
-    fd=open("/tmp/interfaces", "w") 
-    for line in config:
-    	fd.write("%s\n" % line) 
-    fd.close()
+    try:
+        fd=open("/tmp/interfaces", "w") 
+        for line in config:
+    	    fd.write("%s\n" % line) 
+        fd.close()
+    except:
+        pass
+    
     return match
 
 if __name__=="__main__":
