@@ -1,0 +1,2 @@
+monroe  ALL=NOPASSWD: /usr/bin/interfaces
+monroeSA ALL=NOPASSWD: /usr/bin/interfaces
