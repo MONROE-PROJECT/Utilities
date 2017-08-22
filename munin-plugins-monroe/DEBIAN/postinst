@@ -1,0 +1,4 @@
+#!/bin/sh
+chown root:root /etc/sudoers.d/munin-experiments
+chown root:root /etc/sudoers.d/munin-rxtx
+
