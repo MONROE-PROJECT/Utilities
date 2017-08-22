@@ -1,0 +1,2 @@
+#!/bin/sh
+chown root:root /etc/sudoers.d/monroe-interfaces
