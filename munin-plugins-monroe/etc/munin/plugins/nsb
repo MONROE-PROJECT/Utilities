@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title NSB telemetry";
+  echo "lat.label Latitude";
+  echo "lon.label Longitude";
+  echo "sats.label Satellite count";
+  echo "speed.label Speed";
+  echo "bearing.label Bearing";
+else
+  TELEMETRY=$(curl -sm 1 http://192.168.104.1/telemetry_data.php)
+  LAT=$(echo $TELEMETRY|jq -r .gpsData.lat)
+  LON=$(echo $TELEMETRY|jq -r .gpsData.lon)
+  SAT=$(echo $TELEMETRY|jq -r .gpsData.sats)
+  SPD=$(echo $TELEMETRY|jq -r .gpsData.speed)
+  BNG=$(echo $TELEMETRY|jq -r .gpsData.bearing)
+  echo "lat.value $LAT";
+  echo "lon.value $LON";
+  echo "sats.value $SAT";
+  echo "speed.value $SPD";
+  echo "bearing.value $BNG";
+fi
