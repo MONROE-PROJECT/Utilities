@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "munin-plugins-monroe"
-version = "0.1.13"
+version = "0.1.14"
 build_dir = "."
 
 node ('dockerslave') {
