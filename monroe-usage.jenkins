@@ -25,7 +25,7 @@ node ('dockerslave') {
     }
 
     stage ('Build') {
-        sh "fakeroot dpkg -b usage ${jobName}.deb"
+        sh "fakeroot dpkg-deb --build usage ${jobName}.deb"
         sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
         sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
         sh "rm ${jobName}.deb"
