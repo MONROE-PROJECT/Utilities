@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "monroe-sysevent"
-version = "0.1.0"
+version = "0.1.1"
 build_dir = "."
 
 node ('dockerslave') {
