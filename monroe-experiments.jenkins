@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "monroe-experiments"
-version = "0.1.68"
+version = "0.1.69"
 build_dir = "."
 
 node ('dockerslave') {
