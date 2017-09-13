@@ -9,5 +9,6 @@ experiments && exit 1
 
 docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
 echo $URL_BASE_EXPERIMENTS | xargs -n 1 docker pull
+echo $URL_OLD_BASE_EXPERIMENTS | xargs -n 1 docker rmi
 
 docker rmi $(docker images -a|grep '<none>'|awk "{print \$3}") 2>/dev/null || true
