@@ -19,13 +19,13 @@ RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 
 function merge {
   ALLFILES=$(find $1 -type f -name \*.json)
-  TMPMERGEFILE=$(mktemp --tmpdir=$1)
+  TMPMERGEFILE=$(mktemp --tmpdir=$1 || mktemp)
   FILECOUNT=$(echo ${ALLFILES} |grep -o '.json'|wc -l)
   if [ $FILECOUNT -ge 2 ]; then
     base=$(echo ${ALLFILES} | cut -f 1-2 -d . | rev |  cut -d / -f 1 | rev)
     MERGEDFILE="$1/${base}_merged_$(date +%s).json"
     cat ${ALLFILES} >> ${TMPMERGEFILE} &&
-    mv ${TMPMERGEFILE} ${MERGEDFILE} &&
+    mv ${TMPMERGEFILE} ${MERGEDFILE} &&      # this might fail here if the disk is full
     xz -z -9 ${MERGEDFILE} &&
     rm ${ALLFILES}                &&  # only if successful
     logger -t monroe-experiments "Appended $FILECOUNT files to ${MERGEDFILE}"
