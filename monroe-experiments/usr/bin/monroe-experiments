@@ -139,7 +139,7 @@ if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any running containers
   docker stop -t 0 $(docker ps -q) || true;
 
-  docker run -d --net=bridge $URL_NOOP;
+  docker run -d --net=bridge $URL_NOOP /opt/monroe/noop.sh;
   CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
   PID=$(docker inspect -f '{{.State.Pid}}' $CID)
   mkdir -p /var/run/netns;
