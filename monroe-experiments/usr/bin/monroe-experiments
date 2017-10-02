@@ -26,15 +26,15 @@ function mk_disk {
       if [ $(lvcreate -L 100M vg-monroe -n cont-$1) ]; then
         MNTPNT=/dev/vg-monroe/cont-$1
       elif [ $(lvcreate -L 100M Monroe-X-vg -n cont-$1) ]; then
-        MNTPNT=/dev/Monroe-X-vg/cont-$1 
-      else 
+        MNTPNT=/dev/Monroe-X-vg/cont-$1
+      else
         if [ ! -f $BASEDIR/$1.disk ]; then
           dd if=/dev/zero of=$BASEDIR/$1.disk bs=100000000 count=1
         fi
-        MNTPNT=$BASEDIR/$1.disk 
+        MNTPNT=$BASEDIR/$1.disk
       fi
     fi;
-    if [ -z "$(file -sL $MNTPNT | grep ext4)" ]; then 
+    if [ -z "$(file -sL $MNTPNT | grep ext4)" ]; then
       mkfs.ext4 $MNTPNT -F -L $1
     fi
     mount -t ext4 $MNTPNT $BASEDIR/$1
@@ -67,7 +67,7 @@ function update_dnsmasq_conf {
   # create regex to replace interface names
   # no parameters, copies and replaces a file in /tmp
   TRANSLATE=""
-  for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do 
+  for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do
     OPIF=$(usb2op $i)
     IPAD=$(ifnum $i).255
     TRANSLATE="$TRANSLATE -e s/[0-9.]\+@$i/$IPAD@$OPIF/g"
@@ -122,7 +122,7 @@ for CONTAINER in $(docker ps -aq); do
     fi;
   else
     # stop and remove running containers, if their images have been untagged (updated)
-    if [[ "$(docker inspect --format '{{.RepoTags}}' $IMAGEID)" == "[]" ]]; then 
+    if [[ "$(docker inspect --format '{{.RepoTags}}' $IMAGEID)" == "[]" ]]; then
       docker stop -t 0 $CONTAINER || true;
       docker rmi -f $IMAGEID || true;
     fi;
@@ -139,19 +139,22 @@ if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   # stop any running containers
   docker stop -t 0 $(docker ps -q) || true;
 
-  docker run -d --net=bridge $URL_NOOP /bin/sh /opt/monroe/noop.sh;
+  docker run -d --net=none $URL_NOOP /bin/sh /opt/monroe/noop.sh;
   CID=$(docker ps --no-trunc | grep $URL_NOOP | awk '{print $1}' | head -n 1)
   PID=$(docker inspect -f '{{.State.Pid}}' $CID)
   mkdir -p /var/run/netns;
   rm /var/run/netns/monroe 2>/dev/null || true;
   ln -s /proc/$PID/ns/net /var/run/netns/monroe;
 
-  # rename the docker bridge interface 'eth0' to 'metadata'
-  IP=$($MNS ip route | tail -n 1 | awk '{print $NF}')
-  $MNS ip link set dev eth0 down;
-  $MNS ip link set eth0 name metadata;
-  $MNS ip link set dev metadata up;
-  $MNS ip a add $IP dev metadata;
+  ip link del montmp || true;
+  ip link del docker0 || true;
+  ip link add docker0 type veth peer name montmp;
+  ip link set montmp netns monroe;
+  ip addr add 172.17.0.1/24 dev docker0;
+  ip link set docker0 up;
+  $MNS ip link set montmp name metadata;
+  $MNS ip addr add 172.17.0.2/24 dev metadata;
+  $MNS ip link set metadata up;
 
   logger -t monroe-experiments "Started noop container and monroe netns."
 fi
@@ -193,7 +196,7 @@ for IF in $INTERFACES_BR; do
     IPRANGE=$(ifnum $IF)
     TABLE=$(iftable $IF)
     if [ -z "$TABLE" ]; then continue; fi
-    OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ') 
+    OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ')
     OUTRANGE="${OUTMASK%.*}"
     OUTADDR="${OUTMASK%/*}"
 #    GATEWAY=$(ip ro show table all|grep $OUTRANGE|grep default|head -n 1|cut -f3 -d' ')
@@ -205,34 +208,34 @@ for IF in $INTERFACES_BR; do
     ip link set montmp netns monroe;
     ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
     ip link set ${IF}Br up;
-    $MNS ip link set montmp name $OP; 
+    $MNS ip link set montmp name $OP;
     $MNS ip addr add ${IPRANGE}.2/24 dev $OP;
     $MNS ip link set $OP up;
-    
+
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
 #\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j SNAT --to-source ${OUTADDR}
     RULES="\
 \${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
 \${ipt4} -I FORWARD 1 -i ${IF} -o ${IF}Br -j ACCEPT
-\${ipt4} -I FORWARD 1 -i ${IF}Br -o ${IF} -j ACCEPT" 
+\${ipt4} -I FORWARD 1 -i ${IF}Br -o ${IF} -j ACCEPT"
     echo "$RULES" > $TARGET
     circle start
-    
+
     # Routing OP to gateway in netns monroe
     $MNS ip ro flush table $TABLE || true
-    $MNS ip ro add default via ${IPRANGE}.1 table $TABLE 
+    $MNS ip ro add default via ${IPRANGE}.1 table $TABLE
     for cmd in "del" "add"; do
       $MNS ip ru $cmd from ${IPRANGE}.2 lookup $TABLE priority 10000 || true
       $MNS ip ru $cmd from all to ${IPRANGE}.2/24 lookup $TABLE priority 20000 || true
       $MNS ip ru $cmd from all iif lo lookup $TABLE priority 91000 || true
     done
 
-    # Routing IFBr to IF in host (using table allocator tables) 
+    # Routing IFBr to IF in host (using table allocator tables)
     ip rule delete from $IPRANGE.1/24 || true
     ip rule add from $IPRANGE.1/24 table $TABLE priority 10000
   fi
-  
+
 done
 NODEID=$(cat /etc/nodeid)
 
@@ -244,7 +247,7 @@ for IF in $INTERFACES_PING; do
       echo $COUNT > $BASEDIR/ping.counter
 
       IMAGEID=$(docker images -q --no-trunc $URL_PING|head -n 1)
-      
+
       echo "{\"nodeid\":\"$NODEID\", \
              \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
              \"server\":\"$PING_TARGET\", \

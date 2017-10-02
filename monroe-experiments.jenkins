@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "monroe-experiments"
-version = "0.1.71"
+version = "0.1.72"
 build_dir = "."
 
 @Library('jenkins-shared') _
@@ -34,7 +34,7 @@ node ('dockerslave') {
             sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
             sh "rm ${jobName}.deb"
         }
-        
+
         stage ('Archive artifacts') {
             archiveArtifacts "*.deb"
         }
