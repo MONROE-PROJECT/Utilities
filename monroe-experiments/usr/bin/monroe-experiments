@@ -147,7 +147,8 @@ if [ ! -e /var/run/netns/monroe ] || [ -z "$CID" ]; then
   ln -s /proc/$PID/ns/net /var/run/netns/monroe;
 
   ip link del montmp || true;
-  ip link del docker0 || true;
+  ip link del docker0 || true; # legacy. should be moved to a different IP
+  ip link del metadata || true;
   ip link add metadata type veth peer name montmp;
   ip link set montmp netns monroe;
   ip addr add 172.17.0.1/24 dev metadata;
