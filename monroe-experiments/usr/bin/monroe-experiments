@@ -168,7 +168,7 @@ if [ -z "$(pgrep -f dnsmasq-monroe)" ]; then
   logger -t monroe-experiments "dnsmasq is not started, restarting."
   $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-netns-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
 elif [ ! -z "$DNS_CHANGED" ]; then
-  kill -9 $(echo /run/dnsmasq/dnsmasq-monroe.pid) || true
+  kill -9 $(cat /run/dnsmasq/dnsmasq-monroe.pid) || true
   $MNS /usr/sbin/dnsmasq -C /tmp/dnsmasq-servers-netns-monroe.conf -x /run/dnsmasq/dnsmasq-monroe.pid -u dnsmasq
 fi
 
