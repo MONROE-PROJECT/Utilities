@@ -16,12 +16,15 @@ def usb2op(interface, data=None, reverse=False):
 
     config=[]
     match=None
+    changed = False
 
     try:
         lines=open("/tmp/interfaces","r").read().splitlines()
         for imei in lines:
             if imei not in config:
             	config.append(imei)
+            else:
+                changed = True
     except IOError as e:
         if e.errno != errno.ENOENT:
             return None
@@ -34,7 +37,6 @@ def usb2op(interface, data=None, reverse=False):
         	return None
         rimei=config[index]
 
-    changed = False
     for modem in data:
         imei = modem.get('imei')
         if imei is None:
