@@ -4,6 +4,7 @@
 import sys
 import urllib2
 import simplejson as json
+import errno
 
 def usb2op(interface, data=None, reverse=False):
     if interface in ["eth0", "wlan0", "wlan1"]:
@@ -17,7 +18,10 @@ def usb2op(interface, data=None, reverse=False):
     match=None
 
     try:
-        config=open("/tmp/interfaces","r").read().splitlines()
+        lines=open("/tmp/interfaces","r").read().splitlines()
+        for imei in lines:
+            if imei not in config:
+            	config.append(imei)
     except IOError as e:
         if e.errno != errno.ENOENT:
             return None
