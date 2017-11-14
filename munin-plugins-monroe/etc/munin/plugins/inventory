@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ "$1" == "config" ]; then
+  echo "graph_title Inventory";
+  echo "country.label Country";
+  echo "heartbeat.label Registered heartbeat";
+  echo "project.label Project";
+  echo "type.label Node type";
+  echo "address.label Street address"
+else
+  DATA=$(timeout 1 curl -s --key /etc/keys/marvind --cert-type PEM --cert /etc/keys/marvind.pem https://scheduler.monroe-system.eu/v1/resources/$(cat /etc/nodeid));
+  echo "country.value $(echo $DATA|jq -r '.[0].country // empty')";
+  echo "heartbeat.value $(echo $DATA|jq -r ' .[0].heartbeat // empty')";
+  echo "project.value $(echo $DATA|jq -r '.[0].project // empty')";
+  echo "type.value $(echo $DATA|jq -r '.[0].type // empty')";
+  echo "address.value $(echo $DATA|jq -r '.[0].address // empty')";
+fi
