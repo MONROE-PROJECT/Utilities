@@ -71,8 +71,8 @@ function update_dnsmasq_conf {
   done
 
   mv /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
-  cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file > /tmp/dnsmasq-servers-netns-monroe.conf
-  sed $TRANSLATE /tmp/dnsmasq-servers-good.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
+  cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file | grep -v "=8.8" > /tmp/dnsmasq-servers-netns-monroe.conf
+  sed $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
 
   # return non-empty if the files differ, or the bak file does not exist
   diff /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak 2>&1 || true
