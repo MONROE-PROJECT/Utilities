@@ -198,7 +198,7 @@ for IF in $INTERFACES_BR; do
     OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ')
     OUTRANGE="${OUTMASK%.*}"
     OUTADDR="${OUTMASK%/*}"
-    MTU=$(cat /sys/class/net/${IF})
+    MTU=$(cat /sys/class/net/${IF}/mtu)
 #    GATEWAY=$(ip ro show table all|grep $OUTRANGE|grep default|head -n 1|cut -f3 -d' ')
 
     # create veth interface pair
