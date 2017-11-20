@@ -198,12 +198,15 @@ for IF in $INTERFACES_BR; do
     OUTMASK=$(ip a show dev $IF|grep inet|head -n 1|cut -f6 -d' ')
     OUTRANGE="${OUTMASK%.*}"
     OUTADDR="${OUTMASK%/*}"
+    MTU=$(cat /sys/class/net/${IF})
 #    GATEWAY=$(ip ro show table all|grep $OUTRANGE|grep default|head -n 1|cut -f3 -d' ')
 
     # create veth interface pair
     ip link del montmp || true;
     ip link del ${IF}Br || true;
     ip link add ${IF}Br type veth peer name montmp;
+    ip link set dev ${IF}Br mtu $MTU;
+    ip link set dev montmp mtu $MTU;
     ip link set montmp netns monroe;
     ip addr add ${IPRANGE}.1/24 dev ${IF}Br;
     ip link set ${IF}Br up;
