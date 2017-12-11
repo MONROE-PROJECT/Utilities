@@ -43,4 +43,5 @@ monroe-experiments
 
 # redeploy and schedule user experiments
 atrm $(atq | cut -f1)
+rm /var/spool/cron/atjobs/*
 systemctl restart marvind
