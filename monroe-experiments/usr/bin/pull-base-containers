@@ -12,6 +12,7 @@ docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
 for i in $URL_BASE_EXPERIMENTS; do
   docker pull $i
   docker tag $i base-$i
+  docker rmi $i
 done
 for i in $URL_OLD_BASE_EXPERIMENTS; do
   docker rmi $i
