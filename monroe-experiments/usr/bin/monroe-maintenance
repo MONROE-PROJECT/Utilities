@@ -23,8 +23,8 @@ systemctl start docker && {
         TASK_IMAGES=$(echo "$TASK_IMAGES"|grep -v $s);
     done
     docker rmi $TASK_IMAGES
-    # remove any non-monroe container
-    docker images | grep -v 'IMAGE ID' | grep -v ^monroe | grep -v $KAU_REPO | awk '{print $3}' | xargs -rn 1 docker rmi
+    # remove any non-monroe container (tagged monroe- or base-)
+    docker images | grep -v 'IMAGE ID' | grep -v ^monroe- | grep -v ^base- | awk '{print $3}' | xargs -rn 1 docker rmi
     # remove any untagged container (old versions of base experiments)
     docker images | grep none | awk '{print $3}' | xargs -rn 1 docker rmi
 
