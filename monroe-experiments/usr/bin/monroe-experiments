@@ -289,16 +289,6 @@ URL_NEAT_PROXY="trozensztrauch/neat-proxy"
 CID_PROXY=$(docker ps --no-trunc | grep $URL_NEAT_PROXY | awk '{print $1}' | head -n 1)
 echo "TORO: neat-proxy: ${CID_PROXY}"
 
-# Setup firewall rules for accessing dlb rest api
-TARGET="/etc/circle.d/15-neat-proxy.rules"
-if [ ! -f "${TARGET}" ]; then
-  RULES="\
-# allow traffic from docker containers to port 88 (dlb api)
-\${ipt4} -A INPUT -p tcp -s 172.17.0.1/16 --dport 88 -j ACCEPT"
-  echo "$RULES" > $TARGET
-  circle start
-fi
-
 # Configure and start neat-proxy container if not running
 if [ -z "$CID_PROXY" ]; then
   ip rule del fwmark 1 lookup 100 || true
