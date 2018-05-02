@@ -282,6 +282,40 @@ if [ -z "$(docker ps --no-trunc|grep base-$URL_MPLANE)" ]; then
   logger -t monroe-experiments "started mplane container.";
 fi
 
+
+### NEAT PROXY ###########################################################################
+
+URL_NEAT_PROXY="trozensztrauch/neat-proxy"
+CID_PROXY=$(docker ps --no-trunc | grep $URL_NEAT_PROXY | awk '{print $1}' | head -n 1)
+echo "TORO: neat-proxy: ${CID_PROXY}"
+
+# Setup firewall rules for accessing dlb rest api
+TARGET="/etc/circle.d/15-neat-proxy.rules"
+if [ ! -f "${TARGET}" ]; then
+  RULES="\
+# allow traffic from docker containers to port 88 (dlb api)
+\${ipt4} -A INPUT -p tcp -s 172.17.0.1/16 --dport 88 -j ACCEPT"
+  echo "$RULES" > $TARGET
+  circle start
+fi
+
+# Configure and start neat-proxy container if not running
+if [ -z "$CID_PROXY" ]; then
+  ip rule del fwmark 1 lookup 100 || true
+  ip rule add fwmark 1 lookup 100 || true
+  ip route flush table 100 || true
+  ip route add local 0.0.0.0/0 dev lo table 100
+  mkdir -p $BASEDIR/neat-proxy
+  rm -f $BASEDIR/neat-proxy/* || true;
+  docker run -d --net=host \
+             -v $BASEDIR/neat-proxy:/monroe/results \
+             $URL_NEAT_PROXY || true;
+  echo "started neat-proxy container"
+  logger -t monroe-experiments "started neat-proxy container.";
+fi
+
+##############################################################################
+
 monroe-rsync-results     || true
 monroe-user-experiments  || true
 
