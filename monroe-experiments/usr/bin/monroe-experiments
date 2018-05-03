@@ -284,8 +284,6 @@ fi
 
 
 ### NEAT PROXY ###########################################################################
-
-URL_NEAT_PROXY="trozensztrauch/neat-proxy"
 CID_PROXY=$(docker ps --no-trunc | grep $URL_NEAT_PROXY | awk '{print $1}' | head -n 1)
 echo "TORO: neat-proxy: ${CID_PROXY}"
 
