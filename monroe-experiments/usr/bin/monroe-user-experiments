@@ -17,7 +17,7 @@ USER_RSYNC_PARMS="-r -t -z --prune-empty-dirs --chmod=F644,D755"
 USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --timeout=30"
 
 for f in $USERDIR/*; do
-  if [ ! -d "$f" ]; then continue; fi
+  if [ ! -d "$f" ] || [[ $f == *.conf ]] ; then continue; fi
 
   echo "Syncing $f"
   SCHEDID=$(basename "$f")
@@ -58,6 +58,7 @@ for f in $USERDIR/*; do
   else 
     # the container has been stopped already, unmount and remove the directory
     rm -r  $USERDIR/$SCHEDID/* || true
+    rm -rf  $USERDIR/$SCHEDID.conf || true
     umount $USERDIR/$SCHEDID   || true
     rmdir  $USERDIR/$SCHEDID   || true
   fi
