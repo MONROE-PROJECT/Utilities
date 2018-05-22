@@ -1,15 +1,15 @@
 #!/bin/bash
 
 #User experiments PIDs
-RUNNING_USER_EXPERIEMENTS=""
+RUNNING_USER_EXPERIMENTS=""
 for pid in $(cat /experiments/user/*.pid 2> /dev/null)
 do
         if [ -d "/proc/$pid" ]
         then
-                RUNNING_USER_EXPERIEMENTS="$USER_EXPERIEMENTS $pid"
+                RUNNING_USER_EXPERIMENTS="$USER_EXPERIMENTS $pid"
         fi
 done
-echo "$RUNNING_USER_EXPERIEMENTS"
+echo "$RUNNING_USER_EXPERIMENTS"
 
-[[ ! -z "$RUNNING_USER_EXPERIEMENTS" ]]
+[[ ! -z "$RUNNING_USER_EXPERIMENTS" ]]
 exit $?
