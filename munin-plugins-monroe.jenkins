@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "munin-plugins-monroe"
-version = "0.1.14"
+version = "0.1.15"
 build_dir = "."
 
 @Library('jenkins-shared') _
