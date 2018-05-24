@@ -50,9 +50,10 @@ for f in $USERDIR/*; do
       DEPLOY=$(echo $TRAFFIC | jq -r '.deployment // 0')
 
       if [ "$(($RESULTS + $DEPLOY))" -gt "$QUOTA" ]; then
-        docker stop -t 0 monroe-$SCHEDID;
-        echo "storage quota exceeded." >> /experiments/user/$SCHEDID/container.stat
-        echo "failed; storage quota exceeded" > /experiments/user/$SCHEDID.status
+        PID=$(cat $USERDIR/$SCHEDID.pid) 
+        kill -9 $PID  # Should be more graceful maybe
+        echo "storage quota exceeded." >> $USERDIR/$SCHEDID/container.stat
+        echo "failed; storage quota exceeded" > $USERDIR/$SCHEDID.status
       fi
     fi
   else 
