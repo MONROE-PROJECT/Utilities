@@ -17,7 +17,7 @@ USER_RSYNC_PARMS="-r -t -z --prune-empty-dirs --chmod=F644,D755"
 USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --timeout=30"
 
 for f in $USERDIR/*; do
-  if [ ! -d "$f" ]; then continue; fi
+  if [ ! -d "$f" ] || [[ $f == *.confdir ]] ; then continue; fi
 
   echo "Syncing $f"
   SCHEDID=$(basename "$f")
@@ -50,14 +50,16 @@ for f in $USERDIR/*; do
       DEPLOY=$(echo $TRAFFIC | jq -r '.deployment // 0')
 
       if [ "$(($RESULTS + $DEPLOY))" -gt "$QUOTA" ]; then
-        docker stop -t 0 monroe-$SCHEDID;
-        echo "storage quota exceeded." >> /experiments/user/$SCHEDID/container.stat
-        echo "failed; storage quota exceeded" > /experiments/user/$SCHEDID.status
+        PID=$(cat $USERDIR/$SCHEDID.pid) 
+        kill -9 $PID  # Should be more graceful maybe
+        echo "storage quota exceeded." >> $USERDIR/$SCHEDID/container.stat
+        echo "failed; storage quota exceeded" > $USERDIR/$SCHEDID.status
       fi
     fi
   else 
     # the container has been stopped already, unmount and remove the directory
     rm -r  $USERDIR/$SCHEDID/* || true
+    rm -rf  $USERDIR/$SCHEDID.confdir || true
     umount $USERDIR/$SCHEDID   || true
     rmdir  $USERDIR/$SCHEDID   || true
   fi
