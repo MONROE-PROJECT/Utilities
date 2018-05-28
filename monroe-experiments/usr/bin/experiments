@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# import $BASEDIR
+# import $USERDIR
 . /etc/default/monroe-experiments
 
 #User experiments PIDs
 RUNNING_USER_EXPERIMENTS=""
 ALL_SCHEDULED_EXPERIMENTS=""
-for f in $BASEDIR/*; do
+for f in $USERDIR/*; do
         if [ ! -d "$f" ] || [[ $f == *.confdir ]] ; then continue; fi
 
         SCHEDID=$(basename "$f")
-        PID=$(cat $BASEDIR/$SCHEDID.pid 2> /dev/null)
+        PID=$(cat $USERDIR/$SCHEDID.pid 2> /dev/null)
 
         ALL_SCHEDULED_EXPERIMENTS="$ALL_SCHEDULED_EXPERIMENTS $SCHEDID"
         if [ -d "/proc/$PID" ]
