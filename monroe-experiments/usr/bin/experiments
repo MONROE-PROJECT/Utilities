@@ -27,7 +27,7 @@ then
         #List all scheduled experiments both new and old not yet synched
         echo "$ALL_SCHEDULED_EXPERIMENTS"
         exit 0
-
+fi
 #Default list all running experiments, might give incorrect results if PIDS are reused
 echo "$RUNNING_USER_EXPERIMENTS"
 [[ ! -z "$RUNNING_USER_EXPERIMENTS" ]]
