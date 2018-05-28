@@ -14,12 +14,11 @@ MODEMS=$(curl -s http://localhost:88/modems/update)
 DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
 
 ## Identify active running experiment to monitor individual quotas
-EXPERIMENTPID=$(/usr/bin/experiments|cut -f1 -d" ")
-if [ -z "$EXPERIMENTPID" ]; then
-  EXPERIMENTPID=$($(cat /usr/bin/experiments/user/*.pid | head -n 1)
+SCHEDID=$(/usr/bin/experiments|cut -f1 -d" ")
+if [ -z "$SCHEDID" ]; then
+  SCHEDID=$(/usr/bin/experiments -a|cut -f1 -d" ")
 fi
-if [ ! -z "$EXPERIMENTPID" ]; then
-  SCHEDID=$(basename -s .pid $(grep -l $EXPERIMENTPID /experiments/user/*.pid))
+if [ ! -z "$SCHEDID" ]; then
   EXCONFIG=$(cat /experiments/user/$SCHEDID.conf 2>/dev/null)
 fi
 
