@@ -1,6 +1,7 @@
 #!/bin/bash
 
-BASEDIR=/experiments/user
+# import $BASEDIR
+. /etc/default/monroe-experiments
 
 #User experiments PIDs
 RUNNING_USER_EXPERIMENTS=""
@@ -11,17 +12,17 @@ for f in $BASEDIR/*; do
         SCHEDID=$(basename "$f")
         PID=$(cat $BASEDIR/$SCHEDID.pid 2> /dev/null)
 
-        ALL_SCHEDULED_EXPERIMENTS="$ALL_SCHEDULED_EXPERIMENTS $SCHEDID"        
+        ALL_SCHEDULED_EXPERIMENTS="$ALL_SCHEDULED_EXPERIMENTS $SCHEDID"
         if [ -d "/proc/$PID" ]
         then
-                # We have a live process, try to do basic insanity check so it is a docker or qemu 
+                # We have a live process, try to do basic insanity check so it is a docker or qemu
                 CMDLINE="$(cat /proc/$PID/cmdline 2>/dev/null  | tr '\0' '\n')"
                 if [ ! -z "$CMDLINE" ] && [[ "$CMDLINE" = *"docker-containerd-shim"*  ||  "$CMDLINE" = *"qemu-system-x86_64"*  ]]
                 then
-                        # Here we are reasonable sure it is a experiment and not a reused PID from a old schedid. 
+                        # Here we are reasonable sure it is a experiment and not a reused PID from a old schedid.
                         RUNNING_USER_EXPERIMENTS="$RUNNING_USER_EXPERIMENTS $SCHEDID"
                 fi
-        fi      
+        fi
 done
 
 if [ "$1" == "-a" ]
