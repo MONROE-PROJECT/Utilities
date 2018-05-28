@@ -1,15 +1,34 @@
-#!/bin/bash
+BASEDIR=/experiments/user
 
 #User experiments PIDs
 RUNNING_USER_EXPERIMENTS=""
-for pid in $(cat /experiments/user/*.pid 2> /dev/null)
-do
-        if [ -d "/proc/$pid" ]
-        then
-                RUNNING_USER_EXPERIMENTS="$USER_EXPERIMENTS $pid"
-        fi
-done
-echo "$RUNNING_USER_EXPERIMENTS"
+ALL_SCHEDULED_EXPERIMENTS=""
+for f in $BASEDIR/*; do
+        if [ ! -d "$f" ] || [[ $f == *.confdir ]] ; then continue; fi
 
+        SCHEDID=$(basename "$f")
+        PID=$(cat $BASEDIR/$SCHEDID.pid 2> /dev/null)
+
+        ALL_SCHEDULED_EXPERIMENTS="$ALL_SCHEDULED_EXPERIMENTS $SCHEDID"        
+        if [ -d "/proc/$PID" ]
+        then
+                # We have a live process, try to do basic insanity check so it is a docker or qemu 
+                CMDLINE="$(cat /proc/$PID/cmdline 2>/dev/null  | tr '\0' '\n')"
+                if [ ! -z "$CMDLINE" ] && [[ "$CMDLINE" = *"docker-containerd-shim"*  ||  "$CMDLINE" = *"qemu-system-x86_64"*  ]]
+                then
+                        # Here we are reasonable sure it is a experiment and not a reused PID from a old schedid. 
+                        RUNNING_USER_EXPERIMENTS="$RUNNING_USER_EXPERIMENTS $SCHEDID"
+                fi
+        fi      
+done
+
+if [ "$1" == "-a" ]
+then
+        #List all scheduled experiments both new and old not yet synched
+        echo "$ALL_SCHEDULED_EXPERIMENTS"
+        exit 0
+
+#Default list all running experiments, might give incorrect results if PIDS are reused
+echo "$RUNNING_USER_EXPERIMENTS"
 [[ ! -z "$RUNNING_USER_EXPERIMENTS" ]]
 exit $?
