@@ -1,3 +1,5 @@
+#!/bin/bash
+
 BASEDIR=/experiments/user
 
 #User experiments PIDs
