@@ -25,6 +25,9 @@ for f in $USERDIR/*; do
         fi
 done
 
+ALL_SCHEDULED_EXPERIMENTS="${ALL_SCHEDULED_EXPERIMENTS#"${ALL_SCHEDULED_EXPERIMENTS%%[![:space:]]*}"}"
+RUNNING_USER_EXPERIMENTS="${RUNNING_USER_EXPERIMENTS#"${RUNNING_USER_EXPERIMENTS%%[![:space:]]*}"}"
+
 if [ "$1" == "-a" ]
 then
         #List all scheduled experiments both new and old not yet synched

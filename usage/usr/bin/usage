@@ -88,7 +88,7 @@ for IF in "${@:3}"; do
             if [ ! -z "$EXCONFIG" ] && [[ $IF == *"op"* ]]; then
               TRAFFICQ=$(echo $EXCONFIG | jq .traffic)
               if (( $EXTOTAL > $TRAFFICQ )); then
-                kill -9 $(cat $BASEDIR/$SCHEDID.pid)  # Should be more graceful maybe
+                kill -9 $(cat /experiments/user/$SCHEDID.pid)  # Should be more graceful maybe
                 echo "quota exceeded on interface $IM ($IF)." >> /experiments/user/$SCHEDID/container.stat
                 echo "failed; traffic quota exceeded on interface $IM ($IF)" > /experiments/user/$SCHEDID.status
               fi
