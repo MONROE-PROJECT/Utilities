@@ -5,6 +5,11 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 . /etc/default/monroe-experiments
 
+# do not run rsync if already running
+me=$(basename "$0");
+running=$(ps h -C "$me" | grep -wv $$ | wc -l);
+[[ $running > 1 ]] && exit;
+
 # do not run rsync if a user experiment is running
 experiments && exit 1 
 
