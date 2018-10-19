@@ -12,7 +12,7 @@ experiments && exit 1
 DEVELOPMENT=$(cat /monroe/development/enabled || echo 0)
 [ $DEVELOPMENT -eq 1 ] && exit 1
 
-SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
+SSH="ssh -i $KEY -p $RSYNC_PORT -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 RSYNC_PARMS="-r -t -z --exclude 'tstat/' --include '*/' --include '*.json' --include '*.xz' --include '*.gz' --exclude '*' --prune-empty-dirs --chmod=644"
 RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $BASEDIR/ $REPO:$TODIR"
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"

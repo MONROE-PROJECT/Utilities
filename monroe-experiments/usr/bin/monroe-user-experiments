@@ -12,7 +12,7 @@ experiments && exit 1
 DEVELOPMENT=$(cat /monroe/development/enabled || echo 0)
 [ $DEVELOPMENT -eq 1 ] && exit 1
 
-SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
+SSH="ssh -i $KEY -p $RSYNC_PORT -oStrictHostKeyChecking=no -o ConnectTimeout=30"
 USER_RSYNC_PARMS="-r -t -z --prune-empty-dirs --chmod=F644,D755"
 USER_RSYNC="$USER_RSYNC_PARMS --stats -e '$SSH' --timeout=30"
 
