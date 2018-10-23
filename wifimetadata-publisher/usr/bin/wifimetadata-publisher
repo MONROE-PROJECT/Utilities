@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+
+import os
+import time
+import json
+import subprocess as sp
+
+import zmq
+
+def parse_cell(cellstr):
+    result = {}
+    for (key, size, offset) in [
+            ('Address', 17, 1),
+            ('Channel', -1, 0),
+            ('Frequency', -1, 0),
+            ('Quality', 5, 0),
+            ('Signal level', -1, 0),
+            ('ESSID', -1, 0)]:
+        idx = cellstr.find(key) + len(key) + offset + 1
+        if size > 0:
+            result[key] = cellstr[idx:idx+size]
+        else:
+            eol = cellstr[idx:].find('\n')
+            result[key] = cellstr[idx:idx+eol].rstrip()
+    return result
+
+def get_wireless_quality():
+    scans = None
+    with open(os.devnull) as devnull:
+        scans = sp.check_output(['iwlist', 'scan'], stderr=devnull).split('\n\n')
+    scandata = {}
+    for scan in scans:
+        if len(scan) > 0:
+            interface = scan.split(' ')[0]
+            cells = scan.split('Cell ')[1:]
+            celldata = {}
+            for cell in cells:
+                celldata['Cell ' + cell[0:2]] = parse_cell(cell)
+            scandata[interface] = celldata
+    return scandata
+
+def parse_ipaddress(iface):
+    result = {}
+    with open(os.devnull) as devnull:
+        data = sp.check_output(['ip', 'address', 'show', iface], stderr=devnull)
+        lines = data.split('\n')
+        # For now, only read the IPv4 address
+        for line in lines[:-2]: # Last two lines are empty
+            words = line.split()
+            if words[0] == "inet":
+                ipv4 = words[1].split('/')[0]
+                result['IPAddress'] = ipv4
+    return result
+
+def get_value(string, delimiter=':'):
+    return string.split(delimiter)[1]
+
+def parse_iwconfig():
+    result = {}
+    with open(os.devnull) as devnull:
+        data = sp.check_output(['iwconfig'], stderr=devnull)
+        lines = data.split('\n')
+        for line in lines[:-2]: # Last two lines are empty
+            words = line.split()
+            if words[1] == "IEEE":
+                result['InterfaceName'] = words[0]
+                essid = get_value(words[3])
+                if essid[0] == '"':
+                    essid = essid[1:-1] # Cut surrounding quotes
+                result['ESSID'] = essid
+    return result
+
+def parse_pnw():
+    result = {}
+    with open("/proc/net/wireless", "r") as pnw:
+        # Skip the first two lines
+        pnw.readline()
+        pnw.readline()
+        data = pnw.readline().split()
+        if data:
+            result['InterfaceName'] = data[0]
+            result['Quality'] = int(data[2][:-1])
+            result['RSSI'] = int(data[3][:-1])
+            result['Noise'] = int(data[4])
+    return result
+
+def mockup_MONROE(wldata):
+    string = []
+    for wif in wldata:
+        data = wldata[wif]
+        for cell, cdata in data.iteritems():
+            cstr = "MONROE.META.DEVICE.WLAN.CELL" + cell[5:7] + ".SIGNAL"
+            cdata['InternalInterface'] = wif
+            string.append((cstr, cdata))
+    return string
+
+def zmq_loop():
+    topic = "MONROE.META.DEVICE.WLAN.SIGNAL "
+    context = zmq.Context()
+    socket = context.socket(zmq.PUB)
+    socket.connect("tcp://127.0.0.1:10001")
+    seqnr = 0
+    while True:
+        wldata = {"Timestamp": time.time(), "SequenceNumber": seqnr}
+        seqnr += 1
+        wldata.update(parse_iwconfig())
+        wldata.update(parse_pnw())
+        wldata.update(parse_ipaddress(wldata['InterfaceName']))
+        socket.send(topic + json.dumps(wldata))
+        time.sleep(5)
+
+if __name__ == "__main__":
+    zmq_loop()
+

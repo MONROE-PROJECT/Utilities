@@ -1,0 +1,15 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=WiFi Metadata Publisher
+After=network.target docker.service
+
+[Service]
+ExecStart=/usr/bin/wifimetadata-publisher
+
+Type=simple
+Restart=on-failure
+
+StandardError=null
+StandardOutput=null
