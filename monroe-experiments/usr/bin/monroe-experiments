@@ -248,26 +248,45 @@ for IF in $INTERFACES_BR; do
 done
 NODEID=$(cat /etc/nodeid)
 
-for IF in $INTERFACES_PING; do
+if $PING_NNE; then
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep base-$URL_PING|grep $IF)" ]; then
-      COUNT=$(cat $BASEDIR/ping.counter 2>/dev/null || echo 0)
-      COUNT=$(($COUNT + 1))
-      echo $COUNT > $BASEDIR/ping.counter
+        COUNT=$(cat $BASEDIR/ping.counter 2>/dev/null || echo 0)
+        COUNT=$(($COUNT + 1))
+        echo $COUNT > $BASEDIR/ping.counter
 
-      IMAGEID=$(docker images -q --no-trunc base-$URL_PING|head -n 1)
+        IMAGEID=$(docker images -q --no-trunc base-$URL_PING|head -n 1)
 
-      echo "{\"nodeid\":\"$NODEID\", \
-             \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
-             \"server\":\"$PING_TARGET\", \
-             \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
+        echo "{\"nodeid\":\"$NODEID\", \
+               \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\"}" > $BASEDIR/ping.conf
 
-      rm $BASEDIR/ping/tmp* || true;
-      docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro base-$URL_PING $IF || true;
-      logger -t monroe-experiments "started ping container on $IF.";
+        rm $BASEDIR/ping/tmp* || true;
+        docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.conf:/monroe/config:ro base-$URL_PING $IF || true;
+        logger -t monroe-experiments "started NNE ping container.";
     fi;
   fi;
-done
+else
+  for IF in $INTERFACES_PING; do
+    if [ ! -z "$($MNS ip link|grep $IF)" ]; then
+      if [ -z "$(docker ps --no-trunc|grep base-$URL_PING|grep $IF)" ]; then
+        COUNT=$(cat $BASEDIR/ping.counter 2>/dev/null || echo 0)
+        COUNT=$(($COUNT + 1))
+        echo $COUNT > $BASEDIR/ping.counter
+
+        IMAGEID=$(docker images -q --no-trunc base-$URL_PING|head -n 1)
+
+        echo "{\"nodeid\":\"$NODEID\", \
+               \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\", \
+               \"server\":\"$PING_TARGET\", \
+               \"interfacename\": \"$IF\"}" > $BASEDIR/ping.$IF.conf
+
+        rm $BASEDIR/ping/tmp* || true;
+        docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.$IF.conf:/monroe/config:ro base-$URL_PING $IF || true;
+        logger -t monroe-experiments "started ping container on $IF.";
+      fi;
+    fi;
+  done
+fi
 
 if [ -z "$(docker ps --no-trunc|grep base-$URL_METADATA)" ]; then
   echo "{\"nodeid\":\"$NODEID\"}" > $BASEDIR/metadata.conf
