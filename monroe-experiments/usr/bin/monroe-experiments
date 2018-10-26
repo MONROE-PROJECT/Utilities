@@ -248,7 +248,7 @@ for IF in $INTERFACES_BR; do
 done
 NODEID=$(cat /etc/nodeid)
 
-if $PING_NNE; then
+if [[ $PING_NNE -eq 1 ]]; then
   if [ ! -z "$($MNS ip link|grep $IF)" ]; then
     if [ -z "$(docker ps --no-trunc|grep base-$URL_PING|grep $IF)" ]; then
         COUNT=$(cat $BASEDIR/ping.counter 2>/dev/null || echo 0)
