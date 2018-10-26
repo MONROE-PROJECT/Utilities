@@ -260,7 +260,7 @@ if [[ $PING_NNE -eq 1 ]]; then
                \"guid\":\"$IMAGEID.0.$NODEID.$COUNT\"}" > $BASEDIR/ping.conf
 
         rm $BASEDIR/ping/tmp* || true;
-        docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.conf:/monroe/config:ro base-$URL_PING $IF || true;
+        docker run -d --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/ping.conf:/monroe/config:ro base-$URL_PING || true;
         logger -t monroe-experiments "started NNE ping container.";
   fi;
 else
