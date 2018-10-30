@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =================================================================
+#          #     #                 #     #
+#          ##    #   ####   #####  ##    #  ######   #####
+#          # #   #  #    #  #    # # #   #  #          #
+#          #  #  #  #    #  #    # #  #  #  #####      #
+#          #   # #  #    #  #####  #   # #  #          #
+#          #    ##  #    #  #   #  #    ##  #          #
+#          #     #   ####   #    # #     #  ######     #
+#
+#       ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                       https://www.nntb.no
+# =================================================================
+#
+# Extract measurement instance parameters from JSON
+#
+# Copyright (C) 2018-2019 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+
+
+# Ubuntu/Debian dependencies:
+# python3-mysql.connector
+
+import argparse
+import json
+import logging
+import logging.config
+import os
+import sys
+
+
+LOG_DIRECTORY  = '.'
+CONF_DIRECTORY = 'nne-node-experiments'
+
+# ====== Handle arguments ===================================================
+ap = argparse.ArgumentParser(description='Extract Instances')
+ap.add_argument('-J', '--json',      help='JSON configuration file', type=str, required=True)
+ap.add_argument('-D', '--directory', help='Output directory',        type=str, required=True)
+options = ap.parse_args()
+
+
+# ====== Read configuration file ============================================
+try:
+   configurationFile = open(options.json)
+   configuration = json.load(configurationFile)
+except:
+   sys.stderr.write('Unable to read configuration from ' + options.json + '!\n')
+   sys.exit(1)
+
+try:
+   nodeID    = configuration['node_id']
+   instances = configuration['instances']
+except:
+   sys.stderr.write('Invalid or incomplete configuration in ' + options.json + '!\n')
+   sys.exit(1)
+
+
+# ====== Initialise logger ==================================================
+LOGGING_CONF = {
+   'version': 1,
+   'handlers': {
+      'default': {
+         'level': 'DEBUG',
+         'class': 'logging.handlers.TimedRotatingFileHandler',
+         'formatter': 'standard',
+         'filename': LOG_DIRECTORY + '/extract-instances.log',
+         'when': 'D'
+      },
+   },
+   'formatters': {
+      'standard': {
+         'format': '%(asctime)s %(levelname)s [PID=%(process)d] %(message)s'
+      },
+   },
+   'root': {
+      'level': 'DEBUG',
+      'handlers': ['default'],
+   }
+}
+logging.config.dictConfig(LOGGING_CONF)
+logging.debug('Starting')
+
+
+# ====== Generate configurations ============================================
+try:
+   os.chdir(options.directory)
+except Exception as e:
+   logging.error('Unable to change to directory ' + options.directory + ': ' + str(e))
+   sys.exit(1)
+
+nodeFileName = 'node' + str(nodeID) + '.json'
+try:
+   with open(nodeFileName, 'w') as nodeFile:
+
+      for instance in instances:
+         print(instance)
+         measurementFileName = 'measurement' + str(instance['measurement_id']) + '.json'
+         try:
+            with open(measurementFileName, 'w') as measurementFile:
+               json.dump(instance, measurementFile, ensure_ascii=False)
+         except Exception as e:
+            logging.error('Unable to write file ' + measurementFileName + ': ' + str(e))
+            sys.exit(1)
+
+         container = instance['container']
+         if container == None:
+            container = 'null'
+         nodeFile.write(measurementFileName + '\t' + container + '\n')
+
+except Exception as e:
+   logging.error('Unable to write file ' + nodeFileName + ': ' + str(e))
+   sys.exit(1)

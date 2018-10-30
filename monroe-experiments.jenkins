@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "monroe-experiments"
-version = "0.1.89"
+version = "0.1.90"
 build_dir = "."
 
 @Library('jenkins-shared') _
