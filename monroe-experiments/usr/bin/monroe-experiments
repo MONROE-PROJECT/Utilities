@@ -106,8 +106,8 @@ flock -n 42 || {
 trap "flock -u 42" EXIT
 
 
-mk_disk "ping";
 if [ -z "$PING_NNE" ]; then
+  mk_disk "ping";
   mk_disk "metadata";
   mk_disk "mplane";
   mk_disk "tstat";
