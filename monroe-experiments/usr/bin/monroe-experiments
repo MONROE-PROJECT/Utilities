@@ -109,8 +109,8 @@ trap "flock -u 42" EXIT
 mk_disk "ping";
 if [ -z "$PING_NNE" ]; then
   mk_disk "metadata";
+  mk_disk "mplane";
 fi
-mk_disk "mplane";
 mk_disk "tstat";
 
 for CONTAINER in $(docker ps -aq); do
@@ -297,17 +297,17 @@ if [ -z "$PING_NNE" ]; then
     docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro base-$URL_METADATA || true;
     logger -t monroe-experiments "started metadata container.";
   fi
-fi
 
-if [ -z "$(docker ps --no-trunc|grep base-$URL_MPLANE)" ]; then
-  mkdir -p $BASEDIR/tstat # shared folder for tstat results
-  rm $BASEDIR/mplane/tmp* || true;
-  docker run -d --net=container:$CID \
-             -v $BASEDIR/mplane:/monroe/results \
-             -v $BASEDIR/tstat:/monroe/tstat    \
-             -v /etc/nodeid:/nodeid:ro \
-             base-$URL_MPLANE || true;
-  logger -t monroe-experiments "started mplane container.";
+  if [ -z "$(docker ps --no-trunc|grep base-$URL_MPLANE)" ]; then
+    mkdir -p $BASEDIR/tstat # shared folder for tstat results
+    rm $BASEDIR/mplane/tmp* || true;
+    docker run -d --net=container:$CID \
+               -v $BASEDIR/mplane:/monroe/results \
+               -v $BASEDIR/tstat:/monroe/tstat    \
+               -v /etc/nodeid:/nodeid:ro \
+               base-$URL_MPLANE || true;
+    logger -t monroe-experiments "started mplane container.";
+  fi
 fi
 
 monroe-rsync-results     || true
