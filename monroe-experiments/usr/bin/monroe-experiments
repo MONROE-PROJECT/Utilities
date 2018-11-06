@@ -107,7 +107,9 @@ trap "flock -u 42" EXIT
 
 
 mk_disk "ping";
-mk_disk "metadata";
+if [ -z "$PING_NNE" ]; then
+  mk_disk "metadata";
+fi
 mk_disk "mplane";
 mk_disk "tstat";
 
@@ -288,11 +290,13 @@ else
   done
 fi
 
-if [ -z "$(docker ps --no-trunc|grep base-$URL_METADATA)" ]; then
-  echo "{\"nodeid\":\"$NODEID\"}" > $BASEDIR/metadata.conf
-  rm $BASEDIR/metadata/tmp* || true;
-  docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro base-$URL_METADATA || true;
-  logger -t monroe-experiments "started metadata container.";
+if [ -z "$PING_NNE" ]; then
+  if [ -z "$(docker ps --no-trunc|grep base-$URL_METADATA)" ]; then
+    echo "{\"nodeid\":\"$NODEID\"}" > $BASEDIR/metadata.conf
+    rm $BASEDIR/metadata/tmp* || true;
+    docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro base-$URL_METADATA || true;
+    logger -t monroe-experiments "started metadata container.";
+  fi
 fi
 
 if [ -z "$(docker ps --no-trunc|grep base-$URL_MPLANE)" ]; then
