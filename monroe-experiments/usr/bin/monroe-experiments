@@ -110,8 +110,8 @@ mk_disk "ping";
 if [ -z "$PING_NNE" ]; then
   mk_disk "metadata";
   mk_disk "mplane";
+  mk_disk "tstat";
 fi
-mk_disk "tstat";
 
 for CONTAINER in $(docker ps -aq); do
   IMAGEID=$(docker inspect --format '{{.Image}}' $CONTAINER)
