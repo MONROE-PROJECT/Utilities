@@ -104,12 +104,12 @@ except Exception as e:
    logging.error('Unable to change to directory ' + options.directory + ': ' + str(e))
    sys.exit(1)
 
-nodeFileName = 'node' + str(nodeID) + '.json'
+nodeFileName = 'node' + str(nodeID) + '.conf'
 try:
    with open(nodeFileName, 'w') as nodeFile:
 
       for instance in instances:
-         print(instance)
+         # print(instance)
          measurementFileName = 'measurement' + str(instance['measurement_id']) + '.json'
          try:
             with open(measurementFileName, 'w') as measurementFile:
