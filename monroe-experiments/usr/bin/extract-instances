@@ -110,7 +110,7 @@ try:
 
       for instance in instances:
          # print(instance)
-         measurementFileName = 'measurement' + str(instance['measurement_id']) + '.json'
+         measurementFileName = 'measurement' + str(instance['measurement_id']) + '.conf'
          try:
             with open(measurementFileName, 'w') as measurementFile:
                json.dump(instance, measurementFile, ensure_ascii=False)
