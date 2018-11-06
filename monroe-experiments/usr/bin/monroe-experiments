@@ -251,6 +251,7 @@ done
 NODEID=$(cat /etc/nodeid)
 
 if [[ $PING_NNE -eq 1 ]]; then
+  mk_disk "nne";
   IMAGEID=$(docker images -q --no-trunc base-$URL_PING|head -n 1)
   if [ -f /experiments/nne-node-experiments/node${NODEID}.json ]; then
     extract-instances -J /experiments/nne-node-experiments/node${NODEID}.json -D $BASEDIR/
@@ -259,8 +260,8 @@ if [[ $PING_NNE -eq 1 ]]; then
     while read -r MCONFIG CONTAINER; do
       if [ "$CONTAINER" == "null" ]; then continue; fi
       if [ -z "$(docker ps --no-trunc|grep $MCONFIG)" ]; then
-        docker run -d --name=$MCONFIG --net=container:$CID -v $BASEDIR/ping:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/$MCONFIG:/monroe/config:ro $CONTAINER || true;
-        logger -t monroe-experiments "started NNE ping container ($MCONFIG).";
+        docker run -d --name=$MCONFIG --net=container:$CID -v $BASEDIR/nne:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/$MCONFIG:/monroe/config:ro $CONTAINER || true;
+        logger -t monroe-experiments "started NNE container ($MCONFIG).";
       fi
     done < $BASEDIR/node$NODEID.conf
   fi
