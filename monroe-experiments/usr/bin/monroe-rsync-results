@@ -18,7 +18,8 @@ RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $BASEDIR/ $
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 
 function merge {
-  ALLFILES=$(find $1 -type f -name \*.json)
+  ALLFILES=$(find $1 -type f -name \*.json || true)
+  if [ -z "$ALLFILES" ]; then return; fi
   TMPMERGEFILE=$(mktemp --tmpdir=$1 || mktemp)
   FILECOUNT=$(echo ${ALLFILES} |grep -o '.json'|wc -l)
   if [ $FILECOUNT -ge 2 ]; then
