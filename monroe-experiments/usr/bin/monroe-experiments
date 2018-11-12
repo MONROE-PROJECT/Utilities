@@ -130,6 +130,8 @@ for CONTAINER in $(docker ps -aq); do
 done
 # clean stale images
 docker rmi $(docker images -a|grep '<none>'|awk "{print \$3}") 2>/dev/null || true
+# ensure base image is pulled
+docker images --format "{{.Repository}}:{{.Tag}}" | grep $URL_NOOP || pull-base-images || true;
 
 MNS="ip netns exec monroe";
 
