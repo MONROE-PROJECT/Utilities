@@ -253,6 +253,9 @@ for IF in $INTERFACES_BR; do
 done
 
 NODEID=$(cat /etc/nodeid)
+if [[ $PING_NNE -eq 1 ]]; then
+  NODEID=$(( $(cat /etc/nodeid) + 800 ))
+fi
 
 if [[ $PING_NNE -eq 1 ]]; then
   mk_disk "nne";
