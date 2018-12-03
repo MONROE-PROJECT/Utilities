@@ -4,7 +4,7 @@ BASEDIR=/monroe/usage
 
 if [ "$1" == "config" ]; then
   echo "graph_title Interface RX/TX";
-  for IF in "eth0" "wlan0" "usb0" "usb1" "usb2" "wwan0" "wwan2"; do
+  for IF in "eth0" "wlan0" "usb0" "usb1" "usb2" "nlw_1" "nlw_2" "nlw_3"; do
     echo "${IF}RXTX.label $IF data (grand total)";
     echo "${IF}RX.label $IF received (total)";
     echo "${IF}TX.label $IF sent (total)";
@@ -20,7 +20,7 @@ if [ "$1" == "config" ]; then
     echo "${IF}TXZTEMonthly.label $IF sent (ZTE, monthly)";
   done
 else
-  for IF in "eth0" "wlan0" "usb0" "usb1" "usb2" "wwan0" "wwan2"; do
+  for IF in "eth0" "wlan0" "usb0" "usb1" "usb2" "nlw_1" "nlw_2" "nlw_3"; do
     RX=$(cat $BASEDIR/$IF.rx.total 2>/dev/null || echo "-1")
     RXNS=$(cat $BASEDIR/netns/$IF.rx.total 2>/dev/null || echo "-1")
     RXTOTAL=$(($RX + $RXNS))
