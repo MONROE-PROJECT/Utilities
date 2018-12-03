@@ -7,10 +7,13 @@ RSYNC_REMOTE_PREFIX="$RSYNC_USER@$RSYNC_SERVER:$RSYNC_TARGET"
 echo "Remote: $RSYNC_REMOTE_PREFIX"
 
 CWY_NODEID=$(cat /etc/nodeid)
-CWY_VER=1
+CWY_VER=2
 
 while true
 do
+    # ensure node keys are present before sending metadata
+    /usr/local/sbin/register-keys || exit 1
+
     # This $VAR:-text is som fancy Bash parameter expansion. It means that if
     # variable is not set, then "return" the string. See:
     # http://www.gnu.org/software/bash/manual/bash.html#Shell-Parameter-Expansion
@@ -27,7 +30,7 @@ do
         logger -t metadata_exporter "CWY_NODEID must be set";
         exit 2;
     fi
-    
+
     re='^[0-9]+$'
     if ! [[ $CWY_NODEID =~ $re ]]
     then
