@@ -58,14 +58,14 @@ function ifnum {
 function iftable {
   # return the routing table that holds routing data for a given interface
   # $1 - interface name (e.g wwan0)
-  curl -s http://localhost:88/dlb | jq '.interfaces[] | select(.name=="'$1'") | .ip4table'
+  ip route show dev $1 table all |grep default |awk '{print $NF}'
 }
 
 function update_dnsmasq_conf {
   # create regex to replace interface names
   # no parameters, copies and replaces a file in /tmp
   TRANSLATE=""
-  for i in $(curl -s http://localhost:88/dlb|jq -r .interfaces[].name); do
+  for i in $(ls /sys/class/net/|egrep -v "Br|lo|metadata"); do
     OPIF=$(usb2op $i)
     IPAD=$(ifnum $i).2
     TRANSLATE="$TRANSLATE -e s/[0-9.]\+@$i/$IPAD@$OPIF/g"
