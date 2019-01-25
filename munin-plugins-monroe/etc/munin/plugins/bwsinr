@@ -1,0 +1,67 @@
+#!/bin/bash
+# Script to get the bandwidth and sinr values from the modem
+# Author davidh@simula.no
+#
+#First find the valid ttyUSBs if we haven't already
+MODEMTTYFILE=/tmp/bwsinr.modem.ttyusbs
+if [ ! -f $MODEMTTYFILE ]
+then
+    for U in /dev/ttyUSB*
+    do
+	echo 'AT+GSN' | tr '\012' '\015' > $U
+	input=""; ok="OK"
+	while read -t1 input <$U
+	do
+	    if [[ $input =~ ^[0-9]{15} ]]
+	    then
+		echo "$U $input" >> $MODEMTTYFILE
+	    elif [[ $input == *"$ok"* ]]
+	    then
+		read -d '' -t1 discard < $U
+		input=""
+		break
+	    elif [[ $input =~ [A-Za-z] ]]
+	    then
+		#rubbish from a tty, but not the one we are looking for
+		read -d '' -t1 discard < $U
+		input=""
+		break
+	    else
+		#not what we want, so keep looking
+		input=""
+	    fi
+	done
+    done
+    sleep 1
+fi
+#get values from the file and then get bw and sinr from each modem
+while read -t1 ttyimei
+do
+    tia=(${ttyimei%$'\r'}) #strip trailing new line
+    ttyusb=${tia[0]}
+    imei=${tia[1]}
+    if [[ $imei =~ ^[0-9]{15} && $ttyusb =~ "/dev/ttyUSB" ]]
+    then
+	echo 'AT!GSTATUS?' | tr '\012' '\015' > $ttyusb
+	uinput=""; ok="OK";
+	bw=""
+	sinr=""
+	while read -t1 uinput <$ttyusb
+	do
+	    if [[ $uinput == *"$ok"* ]]
+	    then
+		break
+	    elif [[ $uinput == "LTE band"* ]]
+	    then
+		uinpa=($uinput)
+		bw=${uinpa[5]}
+	    elif [[ $uinput == "SINR"* ]]
+	    then
+		uinpa=($uinput)
+		sinr=${uinpa[2]}
+		echo "IMEI,${imei} BW,$bw SINR,$sinr"
+	    fi
+	done
+    fi
+done <$MODEMTTYFILE
+
