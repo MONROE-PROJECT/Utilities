@@ -2,8 +2,40 @@
 # Script to get the bandwidth and sinr values from the modem
 # Author davidh@simula.no
 #
-#First find the valid ttyUSBs if we haven't already
 MODEMTTYFILE=/tmp/bwsinr.modem.ttyusbs
+LOCKFILE=/tmp/bwsinr.modem.ttyusbs.lock
+#function to probe modems in parallel
+probemodem() {
+    local imeix=$1
+    local ttyusbx=$2
+    if [[ $imeix =~ ^[0-9]{15} && $ttyusbx =~ "/dev/ttyUSB" ]]
+    then
+	echo 'AT!GSTATUS?' | tr '\012' '\015' > $ttyusbx
+	local uinput="";
+	local ok="OK";
+	local bw=""
+	local sinr=""
+	local uinpa=""
+	while read -t1 uinput <$ttyusbx
+	do
+	    if [[ $uinput == *"$ok"* ]]
+	    then
+		break
+	    elif [[ $uinput == "LTE band"* ]]
+	    then
+		uinpa=($uinput)
+		bw=${uinpa[5]}
+	    elif [[ $uinput == "SINR"* ]]
+	    then
+		uinpa=($uinput)
+		sinr=${uinpa[2]}
+		probresult="IMEI,${imeix} BW,$bw SINR,$sinr"
+		flock -x $LOCKFILE -c "echo $probresult"
+	    fi
+	done
+    fi
+}
+#First find the valid ttyUSBs if we haven't already
 if [ ! -f $MODEMTTYFILE ]
 then
     for U in /dev/ttyUSB*
@@ -40,28 +72,10 @@ do
     tia=(${ttyimei%$'\r'}) #strip trailing new line
     ttyusb=${tia[0]}
     imei=${tia[1]}
-    if [[ $imei =~ ^[0-9]{15} && $ttyusb =~ "/dev/ttyUSB" ]]
-    then
-	echo 'AT!GSTATUS?' | tr '\012' '\015' > $ttyusb
-	uinput=""; ok="OK";
-	bw=""
-	sinr=""
-	while read -t1 uinput <$ttyusb
-	do
-	    if [[ $uinput == *"$ok"* ]]
-	    then
-		break
-	    elif [[ $uinput == "LTE band"* ]]
-	    then
-		uinpa=($uinput)
-		bw=${uinpa[5]}
-	    elif [[ $uinput == "SINR"* ]]
-	    then
-		uinpa=($uinput)
-		sinr=${uinpa[2]}
-		echo "IMEI,${imei} BW,$bw SINR,$sinr"
-	    fi
-	done
-    fi
+    probemodem $imei $ttyusb &
 done <$MODEMTTYFILE
+#wait for probes to finish
+wait $(jobs -p)
 
+
+    
