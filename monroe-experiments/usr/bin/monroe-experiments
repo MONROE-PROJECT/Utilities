@@ -182,7 +182,11 @@ fi
 CID=$(docker ps --no-trunc -aqf name=monroe-namespace)
 
 INTERFACES_IFB="ifb0 ifb1 ifb2"
-INTERFACES_BR="$(modems | jq -r .[].ifname) eth0 wlan0"
+if [[ "$FIVEGENESIS" -eq 0 ]]; then
+  INTERFACES_BR="$(modems | jq -r .[].ifname) eth0 wlan0"
+else
+  INTERFACES_BR="$(ls /sys/class/net/|egrep -v "Br|lo|metadata")"
+fi
 INTERFACES_PING="op0 op1 op2 op3 op4";
 
 for IF in $INTERFACES_IFB; do
