@@ -107,10 +107,12 @@ trap "flock -u 42" EXIT
 
 
 if [ -z "$PING_NNE" ]; then
-  mk_disk "ping";
+  if [[ "$FIVEGENESIS" -eq 0 ]]; then
+        mk_disk "ping";
+        mk_disk "mplane";
+        mk_disk "tstat";
+  fi
   mk_disk "metadata";
-  mk_disk "mplane";
-  mk_disk "tstat";
 fi
 
 for CONTAINER in $(docker ps -aq); do
@@ -272,7 +274,7 @@ if [[ $PING_NNE -eq 1 ]]; then
       fi
     done < $BASEDIR/node$NODEID.conf
   fi
-else
+elif [[ "$FIVEGENESIS" -eq 0 ]]; then
   for IF in $INTERFACES_PING; do
     if [ ! -z "$($MNS ip link|grep $IF)" ]; then
       if [ -z "$(docker ps --no-trunc|grep base-$URL_PING|grep $IF)" ]; then
@@ -302,16 +304,18 @@ if [ -z "$PING_NNE" ]; then
     docker run -d --net=container:$CID -v $BASEDIR/metadata:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/metadata.conf:/monroe/config:ro base-$URL_METADATA || true;
     logger -t monroe-experiments "started metadata container.";
   fi
-
-  if [ -z "$(docker ps --no-trunc|grep base-$URL_MPLANE)" ]; then
-    mkdir -p $BASEDIR/tstat # shared folder for tstat results
-    rm $BASEDIR/mplane/tmp* || true;
-    docker run -d --net=container:$CID \
-               -v $BASEDIR/mplane:/monroe/results \
-               -v $BASEDIR/tstat:/monroe/tstat    \
-               -v /etc/nodeid:/nodeid:ro \
-               base-$URL_MPLANE || true;
-    logger -t monroe-experiments "started mplane container.";
+  
+  if [[ "$FIVEGENESIS" -eq 0 ]]; then
+    if [ -z "$(docker ps --no-trunc|grep base-$URL_MPLANE)" ]; then
+      mkdir -p $BASEDIR/tstat # shared folder for tstat results
+      rm $BASEDIR/mplane/tmp* || true;
+      docker run -d --net=container:$CID \
+                 -v $BASEDIR/mplane:/monroe/results \
+                 -v $BASEDIR/tstat:/monroe/tstat    \
+                 -v /etc/nodeid:/nodeid:ro \
+                 base-$URL_MPLANE || true;
+      logger -t monroe-experiments "started mplane container.";
+    fi
   fi
 fi
 
