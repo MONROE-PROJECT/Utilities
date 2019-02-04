@@ -58,7 +58,7 @@ function ifnum {
 function iftable {
   # return the routing table that holds routing data for a given interface
   # $1 - interface name (e.g wwan0)
-  ip route show dev $1 table all |grep default |awk '{print $NF}'
+  ip route show dev $1 table all |grep default | awk '{for (i=1;i<=NF;i++){if($i=="table"){print $(i+1)}}}'
 }
 
 function update_dnsmasq_conf {
