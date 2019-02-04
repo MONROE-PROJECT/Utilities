@@ -7,7 +7,7 @@ import simplejson as json
 import errno
 
 def usb2op(interface, data=None, reverse=False):
-    if interface in ["eth0", "wlan0", "wlan1"]:
+    if any(interface.startswith(inter)  for inter in ["eth", "wlan0", "wlan1"]):
         return interface
 
     if data is None:
