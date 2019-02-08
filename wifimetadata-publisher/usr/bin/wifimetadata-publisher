@@ -98,17 +98,17 @@ def zmq_loop():
     topic = "MONROE.META.DEVICE.WLAN.SIGNAL "
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
-    socket.connect("tcp://127.0.0.1:10001")
+    socket.bind("tcp://127.0.0.1:10001")
     seqnr = 0
     while True:
-        wldata = {"Timestamp": time.time(), "SequenceNumber": seqnr}
-        seqnr += 1
-        wldata.update(parse_iwconfig())
-        wldata.update(parse_pnw())
-        wldata.update(parse_ipaddress(wldata['InterfaceName']))
-        socket.send(topic + json.dumps(wldata))
+        wldata = parse_iwconfig()
+        if wldata:
+            wldata.update({"Timestamp": time.time(), "SequenceNumber": seqnr})
+            seqnr += 1
+            wldata.update(parse_pnw())
+            wldata.update(parse_ipaddress(wldata['InterfaceName']))
+            socket.send(topic + json.dumps(wldata))
         time.sleep(5)
 
 if __name__ == "__main__":
     zmq_loop()
-
