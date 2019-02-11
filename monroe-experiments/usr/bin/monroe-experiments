@@ -256,9 +256,13 @@ for IF in $INTERFACES_BR; do
 
 done
 
-NODEID=$(cat /etc/nodeid)
-if [[ $PING_NNE -eq 1 ]]; then
-  NODEID=$(( $(cat /etc/nodeid) + 800 ))
+if [ -f /etc/nodeid.n2 ]; then
+  NODEID=$(cat /etc/nodeid.n2)
+else
+  NODEID=$(cat /etc/nodeid)
+  if [[ $PING_NNE -eq 1 ]]; then
+    NODEID=$(( $(cat /etc/nodeid) + 800 ))
+  fi
 fi
 
 if [[ $PING_NNE -eq 1 ]]; then
