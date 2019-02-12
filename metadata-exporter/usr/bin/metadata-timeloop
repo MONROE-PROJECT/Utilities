@@ -15,8 +15,10 @@ fi
 
 while true
 do
-    # ensure node keys are present before sending metadata
-    /usr/local/sbin/register-keys || exit 1
+    if [ $CWY_VER -gt 1 ]; then
+        # ensure node keys are present before sending metadata
+        /usr/local/sbin/register-keys || exit 1
+    fi
 
     # This $VAR:-text is som fancy Bash parameter expansion. It means that if
     # variable is not set, then "return" the string. See:
