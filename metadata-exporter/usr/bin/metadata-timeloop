@@ -6,8 +6,12 @@ RSYNC_REMOTE_PREFIX="$RSYNC_USER@$RSYNC_SERVER:$RSYNC_TARGET"
 
 echo "Remote: $RSYNC_REMOTE_PREFIX"
 
-CWY_NODEID=$(cat /etc/nodeid.n2)
 CWY_VER=${RSYNC_VERSION:-1}
+if [ $CWY_VER -eq 1 ]; then
+  CWY_NODEID=$(cat /etc/nodeid)
+else
+  CWY_NODEID=$(cat /etc/nodeid.n2)
+fi
 
 while true
 do
