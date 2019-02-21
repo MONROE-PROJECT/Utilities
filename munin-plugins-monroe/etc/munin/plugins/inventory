@@ -8,7 +8,7 @@ if [ "$1" == "config" ]; then
   echo "type.label Node type";
   echo "address.label Street address"
 else
-  DATA=$(timeout 1 curl -s --key /etc/keys/marvind --cert-type PEM --cert /etc/keys/marvind.pem https://scheduler.monroe-system.eu/v1/resources/$(cat /etc/nodeid));
+  DATA=$(timeout 1 curl -s --key /etc/keys/marvind --cert-type PEM --cert /etc/keys/marvind.pem https://scheduler.monroe-system.eu/v1/resources/$(cat /etc/nodeid.n2));
   echo "country.value $(echo $DATA|jq -r '.[0].country // empty')";
   echo "heartbeat.value $(echo $DATA|jq -r ' .[0].heartbeat // empty')";
   echo "project.value $(echo $DATA|jq -r '.[0].project // empty')";
