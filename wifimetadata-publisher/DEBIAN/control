@@ -3,7 +3,7 @@ Version: 0.1.0
 Section: devel
 Priority: optional
 Architecture: amd64
-Depends: libzmq3 (>=4.0.5), wireless-tools (>=30~pre9-12+b1)
+Depends: wireless-tools (>=30~pre9-12+b1), python-zmq (>=16.0.2-2)
 Installed-Size: 73
 Maintainer: Jonas Karlsson <jonas.karlsson@kau.se>
 Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities
