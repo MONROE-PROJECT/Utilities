@@ -131,7 +131,7 @@ done
 # clean stale images
 docker rmi $(docker images -a|grep '<none>'|awk "{print \$3}") 2>/dev/null || true
 # ensure base image is pulled
-docker images --format "{{.Repository}}:{{.Tag}}" | grep $URL_NOOP || pull-base-images || true;
+docker images --format "{{.Repository}}:{{.Tag}}" | grep $URL_NOOP || pull-base-containers || true;
 
 MNS="ip netns exec monroe";
 
