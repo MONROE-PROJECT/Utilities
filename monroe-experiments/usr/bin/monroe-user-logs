@@ -3,7 +3,7 @@
 BASEDIR="/experiments/user"
 
 for EXP in $(experiments -a); do 
-	ID=${EXP:7}
+	ID=${EXP}
 	if [ -e $BASEDIR/$ID/lost+found ]; then 
             docker logs $EXP 2>&1 >$BASEDIR/$ID/container.log
 	fi
