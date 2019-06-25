@@ -104,7 +104,7 @@ def zmq_loop():
     seqnr = 0
     while True:
         wldata = parse_iwconfig()
-        if wldata:
+        if wldata and wldata.get("ESSID", 'off/any') != 'off/any' :
             wldata.update({"Timestamp": time.time(), "SequenceNumber": seqnr, "DataId": dataid, "DataVersion": datanr})
             seqnr += 1
             wldata.update(parse_pnw())
