@@ -1,0 +1,10 @@
+Package: libuci
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Depends: libubox
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/libuci
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: libubox from the OpenWRT project, used for configuration handling
