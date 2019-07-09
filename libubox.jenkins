@@ -29,10 +29,8 @@ node ('dockerslave') {
         }
 
         stage ('Build') {
-            sh "cd ${jobName}"
-            sh "./make.sh"
-            sh "fakeroot dpkg-deb --build deb_dist ../${jobName}.deb"
-            sh "cd .."
+            sh "cd ${jobName}; ./make.sh"
+            sh "fakeroot dpkg-deb --build libubox/deb_dist ${jobName}.deb"
             sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
             sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
             sh "rm ${jobName}.deb"
