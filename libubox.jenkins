@@ -30,7 +30,7 @@ node ('dockerslave') {
 
         stage ('Build') {
             sh "cd ${jobName}"
-            sh -x "./make.sh"
+            sh "./make.sh"
             sh "fakeroot dpkg-deb --build deb_dist ../${jobName}.deb"
             sh "cd .."
             sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
