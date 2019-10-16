@@ -61,6 +61,8 @@ function iftable {
   curl -s http://localhost:88/dlb | jq '.interfaces[] | select(.name=="'$1'") | .ip4table'
 }
 
+touch /tmp/tmp/dnsmasq-servers-netns-monroe.conf
+
 function update_dnsmasq_conf {
   # create regex to replace interface names
   # no parameters, copies and replaces a file in /tmp
@@ -72,6 +74,7 @@ function update_dnsmasq_conf {
   done
 
   mv /tmp/dnsmasq-servers-netns-monroe.conf /tmp/dnsmasq-servers-netns-monroe.bak || true
+  rm -r /tmp/dnsmasq-servers-netns-monroe.conf || true
   cat /etc/dnsmasq.d/dnsmasq-custom.conf | grep -v servers-file | grep -v "=8.8" > /tmp/dnsmasq-servers-netns-monroe.conf
   sed $TRANSLATE /tmp/dnsmasq-servers.conf >> /tmp/dnsmasq-servers-netns-monroe.conf
 
