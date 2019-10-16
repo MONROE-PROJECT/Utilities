@@ -61,7 +61,7 @@ function iftable {
   curl -s http://localhost:88/dlb | jq '.interfaces[] | select(.name=="'$1'") | .ip4table'
 }
 
-touch /tmp/tmp/dnsmasq-servers-netns-monroe.conf
+touch /tmp/dnsmasq-servers-netns-monroe.conf
 
 function update_dnsmasq_conf {
   # create regex to replace interface names
