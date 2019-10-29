@@ -31,6 +31,7 @@ node ('dockerslave') {
         stage ('Install dependencies') {
             copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
             sh "sudo dpkg -i libubox_*"
+	    sh "rm libubox_*_amd64.deb"
         }
         stage ('Build') {
             sh "cd ${jobName}; ./make.sh"
