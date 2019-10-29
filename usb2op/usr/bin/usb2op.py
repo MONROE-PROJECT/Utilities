@@ -4,53 +4,66 @@
 import sys
 import urllib2
 import simplejson as json
+import errno
 
 def usb2op(interface, data=None, reverse=False):
     if interface in ["eth0", "wlan0", "wlan1"]:
         return interface
- 
+
     if data is None:
         r = urllib2.urlopen("http://localhost:88/modems").read()
         data = json.loads(r)
-        
+
     config=[]
     match=None
-    
+    changed = False
+
     try:
-        config=open("/tmp/interfaces","r").read().splitlines()
+        lines=open("/tmp/interfaces","r").read().splitlines()
+        for imei in lines:
+            if imei not in config:
+            	config.append(imei)
+            else:
+                changed = True
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            return None
     except:
-    	pass
+    	return None
 
     if reverse:
     	index=int(interface[2:])
         if len(config)<=index:
         	return None
         rimei=config[index]
-    
+
     for modem in data:
         imei = modem.get('imei')
         if imei is None:
         	continue
-        
+        imei = imei.strip()
+
         if reverse:
         	if imei == rimei:
         	    return modem.get('ifname')
         else:
-            if modem.get('ifname','') == interface:  
+            if modem.get('ifname','') == interface:
                 if imei not in config:
                 	config.append(imei)
+                        changed = True
                 opnr = config.index(imei)
                 match = "op%i" % opnr
                 break
-                
-    try:
-        fd=open("/tmp/interfaces", "w") 
+
+    if changed:
+      try:
+        fd=open("/tmp/interfaces", "w")
         for line in config:
-    	    fd.write("%s\n" % line) 
+    	    fd.write("%s\n" % line)
         fd.close()
-    except:
+      except:
         pass
-    
+
     return match
 
 if __name__=="__main__":

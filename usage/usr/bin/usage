@@ -14,12 +14,11 @@ MODEMS=$(curl -s http://localhost:88/modems/update)
 DLB=$(curl -s http://localhost:88/dlb|jq -r '.interfaces[]')
 
 ## Identify active running experiment to monitor individual quotas
-EXPERIMENT=$(docker ps --format {{.Image}} | grep 'monroe-' | head -n 1)
-if [ -z "$EXPERIMENT" ]; then
-  EXPERIMENT=$(docker ps -a --format {{.Image}} | grep 'monroe-' | head -n 1)
+SCHEDID=$(/usr/bin/experiments|cut -f1 -d" ")
+if [ -z "$SCHEDID" ]; then
+  SCHEDID=$(/usr/bin/experiments -a|cut -f1 -d" ")
 fi
-if [ ! -z "$EXPERIMENT" ]; then
-  SCHEDID=${EXPERIMENT##*-}
+if [ ! -z "$SCHEDID" ]; then
   EXCONFIG=$(cat /experiments/user/$SCHEDID.conf 2>/dev/null)
 fi
 
@@ -76,20 +75,20 @@ for IF in "${@:3}"; do
           # This is used for quota checking.
 
 
-          if [ ! -z "$EXPERIMENT" ]; then
-            mkdir -p $BASEDIR/$EXPERIMENT
-            EXRXT=$(cat $BASEDIR/$EXPERIMENT/$IM.rx.total || echo 0)
-            EXTXT=$(cat $BASEDIR/$EXPERIMENT/$IM.tx.total || echo 0)
-            EXT=$(cat $BASEDIR/$EXPERIMENT/$IM.total || echo 0)
-            echo $(($EXRXT + $RXD)) > $BASEDIR/$EXPERIMENT/$IM.rx.total
-            echo $(($EXTXT + $TXD)) > $BASEDIR/$EXPERIMENT/$IM.tx.total
+          if [ ! -z "$SCHEDID" ]; then
+            mkdir -p $BASEDIR/$SCHEDID
+            EXRXT=$(cat $BASEDIR/$SCHEDID/$IM.rx.total || echo 0)
+            EXTXT=$(cat $BASEDIR/$SCHEDID/$IM.tx.total || echo 0)
+            EXT=$(cat $BASEDIR/$SCHEDID/$IM.total || echo 0)
+            echo $(($EXRXT + $RXD)) > $BASEDIR/$SCHEDID/$IM.rx.total
+            echo $(($EXTXT + $TXD)) > $BASEDIR/$SCHEDID/$IM.tx.total
             EXTOTAL=$(($EXT + $RXD + $TXD))
-            echo $EXTOTAL > $BASEDIR/$EXPERIMENT/$IM.total
+            echo $EXTOTAL > $BASEDIR/$SCHEDID/$IM.total
 
             if [ ! -z "$EXCONFIG" ] && [[ $IF == *"op"* ]]; then
               TRAFFICQ=$(echo $EXCONFIG | jq .traffic)
               if (( $EXTOTAL > $TRAFFICQ )); then
-                docker stop -t 0 $EXPERIMENT
+                kill -9 $(cat /experiments/user/$SCHEDID.pid)  # Should be more graceful maybe
                 echo "quota exceeded on interface $IM ($IF)." >> /experiments/user/$SCHEDID/container.stat
                 echo "failed; traffic quota exceeded on interface $IM ($IF)" > /experiments/user/$SCHEDID.status
               fi

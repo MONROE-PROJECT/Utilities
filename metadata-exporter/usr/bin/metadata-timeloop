@@ -6,11 +6,20 @@ RSYNC_REMOTE_PREFIX="$RSYNC_USER@$RSYNC_SERVER:$RSYNC_TARGET"
 
 echo "Remote: $RSYNC_REMOTE_PREFIX"
 
-CWY_NODEID=$(cat /etc/nodeid)
-CWY_VER=1
+CWY_VER=${RSYNC_VERSION:-1}
+if [ $CWY_VER -eq 1 ]; then
+  CWY_NODEID=$(cat /etc/nodeid)
+else
+  CWY_NODEID=$(cat /etc/nodeid.n2)
+fi
 
 while true
 do
+    if [ $CWY_VER -gt 1 ]; then
+        # ensure node keys are present before sending metadata
+        /usr/local/sbin/register-keys || exit 1
+    fi
+
     # This $VAR:-text is som fancy Bash parameter expansion. It means that if
     # variable is not set, then "return" the string. See:
     # http://www.gnu.org/software/bash/manual/bash.html#Shell-Parameter-Expansion
@@ -27,7 +36,7 @@ do
         logger -t metadata_exporter "CWY_NODEID must be set";
         exit 2;
     fi
-    
+
     re='^[0-9]+$'
     if ! [[ $CWY_NODEID =~ $re ]]
     then
@@ -43,7 +52,7 @@ do
     # INSERT before UPDATE). We might get problems if the same router reboots many
     # times and we dont have a proper clock, but we will be saved by update
     BEFORE_TIME=$(date '+%s')
-    $RSYNC_PATH -t --remove-source-files -z --timeout=30 -e "ssh -i $META_KEY_PATH -p $RSYNC_DST_PORT -o StrictHostKeychecking=no -o ConnectTimeout=30" $RSYNC_LOCAL \
+    $RSYNC_PATH -t --remove-source-files -z --timeout=30 -e "ssh -i $META_KEY_PATH -p $RSYNC_DST_PORT -o StrictHostKeyChecking=no -o 'UserKnownHostsFile=/dev/null' -o ConnectTimeout=30" $RSYNC_LOCAL \
         $RSYNC_REMOTE_PREFIX/$CWY_VER/$CWY_NODEID/
     RETVAL=$?
     AFTER_TIME=$(date '+%s')

@@ -33,6 +33,16 @@ def get_interfaces():
                                    "opname":op, "host":host, "netns":netns})
             except:
                 continue
+    r = urllib2.urlopen("http://localhost:88/dlb").read()
+    dlb = json.loads(r)
+    interfaces = dlb['interfaces'] 
+    for f in interfaces:
+        name = f['name']
+        mac = f.get('mac')
+        if mac:
+            op    = usb2op(name, data=data)
+            if op:
+                modems.append({"opname":op, "mac":mac})
     return modems
 
 if __name__=="__main__":

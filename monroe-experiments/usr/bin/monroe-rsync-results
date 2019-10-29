@@ -6,19 +6,22 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 . /etc/default/monroe-experiments
 
 # do not run rsync if a user experiment is running
-experiments && exit 1 
+experiments && exit 1
 
 # do not run rsync if in development mode
 DEVELOPMENT=$(cat /monroe/development/enabled || echo 0)
 [ $DEVELOPMENT -eq 1 ] && exit 1
 
-SSH="ssh -i $KEY -p 2280 -oStrictHostKeyChecking=no -o ConnectTimeout=30"
-RSYNC_PARMS="-r -t -z --exclude 'tstat/' --include '*/' --include '*.json' --include '*.xz' --include '*.gz' --exclude '*' --prune-empty-dirs"
-RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $BASEDIR/ $REPO:$TODIR"
+SSH="ssh -q -i $KEY -p $RSYNC_PORT -oStrictHostKeyChecking=no -o ConnectTimeout=30"
+RSYNC_BASEDIR=${RSYNC_BASEDIR:-$BASEDIR}
+RSYNC_PARMS="--no-motd -r -t -z --exclude 'tstat/' --include '*/' --include '*.json' --include '*.xz' --include '*.gz' --exclude '*' --prune-empty-dirs --chmod=644"
+RSYNC_ALL="$RSYNC_PARMS -e '$SSH' --remove-source-files --timeout=30 $RSYNC_BASEDIR/ $REPO:$TODIR"
 RSYNC_LS="rsync --ignore-missing-args $RSYNC_PARMS"
 
 function merge {
-  ALLFILES=$(find $1 -type f -name \*.json)
+  if [ ! -e $1 ]; then return; fi
+  ALLFILES=$(find $1 -type f -name \*.json || true)
+  if [ -z "$ALLFILES" ]; then return; fi
   TMPMERGEFILE=$(mktemp --tmpdir=$1 || mktemp)
   FILECOUNT=$(echo ${ALLFILES} |grep -o '.json'|wc -l)
   if [ $FILECOUNT -ge 2 ]; then

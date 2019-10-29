@@ -7,8 +7,16 @@ export PATH=/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 # do not run rsync if a user experiment is running
 experiments && exit 1
 
+# pull base experiments and retag them as base-$URL
 docker login -u $KAU_USER -p $KAU_PASS $KAU_REPO
-echo $URL_BASE_EXPERIMENTS | xargs -n 1 docker pull
-echo $URL_OLD_BASE_EXPERIMENTS | xargs -n 1 docker rmi
+for i in $URL_BASE_EXPERIMENTS; do
+  docker pull $i
+  docker tag $i base-$i
+  docker rmi $i
+done
+for i in $URL_OLD_BASE_EXPERIMENTS; do
+  docker rmi $i
+  docker rmi base-$i
+done
 
 docker rmi $(docker images -a|grep '<none>'|awk "{print \$3}") 2>/dev/null || true

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+systemctl enable wifimetadata-publisher || true
+systemctl start  wifimetadata-publisher || true

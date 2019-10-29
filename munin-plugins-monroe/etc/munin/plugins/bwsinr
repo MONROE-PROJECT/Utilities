@@ -1,0 +1,81 @@
+#!/bin/bash
+# Script to get the bandwidth and sinr values from the modem
+# Author davidh@simula.no
+#
+MODEMTTYFILE=/tmp/bwsinr.modem.ttyusbs
+LOCKFILE=/tmp/bwsinr.modem.ttyusbs.lock
+#function to probe modems in parallel
+probemodem() {
+    local imeix=$1
+    local ttyusbx=$2
+    if [[ $imeix =~ ^[0-9]{15} && $ttyusbx =~ "/dev/ttyUSB" ]]
+    then
+	echo 'AT!GSTATUS?' | tr '\012' '\015' > $ttyusbx
+	local uinput="";
+	local ok="OK";
+	local bw=""
+	local sinr=""
+	local uinpa=""
+	while read -t1 uinput <$ttyusbx
+	do
+	    if [[ $uinput == *"$ok"* ]]
+	    then
+		break
+	    elif [[ $uinput == "LTE band"* ]]
+	    then
+		uinpa=($uinput)
+		bw=${uinpa[5]}
+	    elif [[ $uinput == "SINR"* ]]
+	    then
+		uinpa=($uinput)
+		sinr=${uinpa[2]}
+		probresult="IMEI,${imeix} BW,$bw SINR,$sinr"
+		flock -x $LOCKFILE -c "echo $probresult"
+	    fi
+	done
+    fi
+}
+#First find the valid ttyUSBs if we haven't already
+if [ ! -f $MODEMTTYFILE ]
+then
+    for U in /dev/ttyUSB*
+    do
+	echo 'AT+GSN' | tr '\012' '\015' > $U
+	input=""; ok="OK"
+	while read -t1 input <$U
+	do
+	    if [[ $input =~ ^[0-9]{15} ]]
+	    then
+		echo "$U $input" >> $MODEMTTYFILE
+	    elif [[ $input == *"$ok"* ]]
+	    then
+		read -d '' -t1 discard < $U
+		input=""
+		break
+	    elif [[ $input =~ [A-Za-z] ]]
+	    then
+		#rubbish from a tty, but not the one we are looking for
+		read -d '' -t1 discard < $U
+		input=""
+		break
+	    else
+		#not what we want, so keep looking
+		input=""
+	    fi
+	done
+    done
+    sleep 1
+fi
+#get values from the file and then get bw and sinr from each modem
+while read -t1 ttyimei
+do
+    tia=(${ttyimei%$'\r'}) #strip trailing new line
+    ttyusb=${tia[0]}
+    imei=${tia[1]}
+    probemodem $imei $ttyusb &
+done <$MODEMTTYFILE
+#wait for probes to finish
+wait $(jobs -p)
+
+
+    

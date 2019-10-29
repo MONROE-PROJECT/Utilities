@@ -11,22 +11,22 @@ systemctl start docker && {
     docker stop -t 0 $(docker ps -q) || true
 
     # unmount and delete all folders in /experiments
-    grep /experiments /proc/mounts | cut -f1 -d' ' | xargs umount || true
+    grep /experiments /proc/mounts | cut -f1 -d' ' | xargs -r umount || true
     rm -r /experiments/monroe/*
     rm -r /experiments/user/*
 
     # cleanup stale containers
     # remove monroe- containers other than what is currently scheduled
-    CURRENT_SCHEDULES=$(atq|awk '{print $1}'|xargs -n 1 at -c|grep start|awk '{print $2}')
+    CURRENT_SCHEDULES=$(atq|awk '{print $1}'|xargs -rn 1 at -c|grep start|awk '{print $2}')
     TASK_IMAGES=$(docker images|grep ^monroe-|awk '{print $1}')
     for s in $CURRENT_SCHEDULES; do
         TASK_IMAGES=$(echo "$TASK_IMAGES"|grep -v $s);
     done
     docker rmi $TASK_IMAGES
-    # remove any non-monroe container
-    docker images | grep -v 'IMAGE ID' | grep -v ^monroe | grep -v $KAU_REPO | awk '{print $3}' | xargs -n 1 docker rmi
+    # remove any non-monroe container (tagged monroe- or base-)
+    docker images | grep -v 'IMAGE ID' | grep -v ^monroe- | grep -v ^base- | awk '{print $3}' | xargs -rn 1 docker rmi
     # remove any untagged container (old versions of base experiments)
-    docker images | grep none | awk '{print $3}' | xargs -n 1 docker rmi
+    docker images | grep none | awk '{print $3}' | xargs -rn 1 docker rmi
 
     systemctl stop docker || true
 }
@@ -43,4 +43,5 @@ monroe-experiments
 
 # redeploy and schedule user experiments
 atrm $(atq | cut -f1)
+rm /var/spool/cron/atjobs/*
 systemctl restart marvind
