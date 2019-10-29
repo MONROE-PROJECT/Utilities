@@ -28,6 +28,10 @@ node ('dockerslave') {
                     userRemoteConfigs: [[url: 'git@github.com:Celerway/celerway-jenkins.git']]])
         }
 
+        stage ('Install dependencies') {
+            copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
+            sudo dpkg -i libubox_*
+        }
         stage ('Build') {
             sh "cd ${jobName}; ./make.sh"
             sh "fakeroot dpkg-deb --build libuci/deb_dist ${jobName}.deb"
