@@ -5,7 +5,7 @@ version = "0.1.1"
 
 @Library('jenkins-shared') _
 
-node ('dockerslave') {
+node ('dockermonroe') {
     try {
         notifyBuild('STARTED')
         // Be sure that workspace is cleaned
