@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "monroe-wifi-metadata-publisher"
-version = "0.1.3"
+version = "0.1.4"
 // build_dir = "."
 
 @Library('jenkins-shared') _
