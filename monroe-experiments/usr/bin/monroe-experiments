@@ -206,6 +206,9 @@ for IF in $INTERFACES_BR; do
     $MNS ip link set $OP down 2>/dev/null || true;
     continue;
   fi
+  if ! $(/usr/bin/monroe-iftest $OP); then
+    $MNS ip link del $OP 2>/dev/null || true;
+  fi
   if [ ! -z "$($MNS ip link|grep ${OP}@)" ]; then
     $MNS ip link set $OP up;
     continue;

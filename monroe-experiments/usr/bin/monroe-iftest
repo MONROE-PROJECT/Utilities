@@ -1,0 +1,9 @@
+#!/bin/bash
+
+TARGETS="8.8.8.8 1.1.1.1"
+OPNAME=$1
+
+for targ in $TARGETS; do
+   ip netns exec monroe ping -I $OPNAME -qc 1 -W 3 $targ >/dev/null && exit 0
+done
+exit 1
