@@ -57,6 +57,12 @@ do
     RETVAL=$?
     AFTER_TIME=$(date '+%s')
 
+    if [ $RETVAL -eq 255 ]; then 
+	    rm $META_KEY_PATH
+	    register-keys
+	    exit 1
+    fi
+
     #if [ $RETVAL -ne 0 ]
     #then
     #    logger -t metadata_exporter "Copying metadata failed with code $RETVAL"
