@@ -197,6 +197,16 @@ for IF in $INTERFACES_IFB; do
 done
 
 for IF in $INTERFACES_BR; do
+
+  # Drop host traffic on iot interfaces
+  # TBD also check DEV_KIND if that becomes relevant
+  DEV_SUB_KIND=$(/usr/bin/modems|jq '.[]|select(.ifname="${IF}").device_sub_kind')
+  if [ $DEV_SUB_KIND == "15" ] || [ $DEV_SUB_KIND == "16" ]; then
+      TARGET="/etc/circle.d/20-$IF-iotdrop.rules"
+      echo "\${ipt4} -I OUTPUT 1 -o ${IF} -j DROP" > $TARGET
+      circle start
+  fi
+
   OP=$(usb2op $IF) || continue
   if [ -z "$(ip link|grep ${IF}:)" ]; then
     $MNS ip link del $OP 2>/dev/null || true;
@@ -239,6 +249,7 @@ for IF in $INTERFACES_BR; do
     # Firewall masquerade internal IFBr to IF
     TARGET="/etc/circle.d/50-$IF-nat.rules"
 #\${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j SNAT --to-source ${OUTADDR}
+
     RULES="\
 \${ipt4} -t nat -A POSTROUTING -s ${IPRANGE}.2/24 -o ${IF} -j MASQUERADE
 \${ipt4} -I FORWARD 1 -i ${IF} -o ${IF}Br -j ACCEPT
