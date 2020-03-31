@@ -5,7 +5,7 @@ build_dir = "."
 
 @Library('jenkins-shared') _
 
-node ('dockermonroe') {
+node {
     try {
         notifyBuild('STARTED')
         // Be sure that workspace is cleaned
@@ -27,16 +27,17 @@ node ('dockermonroe') {
                     submoduleCfg: [],
                     userRemoteConfigs: [[url: 'git@github.com:Celerway/celerway-jenkins.git']]])
         }
-
-        stage ('Build') {
+        docker.image('celerway/jenkins-slave:monroe').inside('-u jenkins') {
+          stage ('Build') {
             sh "fakeroot dpkg-deb --build ${jobName} ${jobName}.deb"
             sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
             sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
             sh "rm ${jobName}.deb"
-        }
+          }
 
-        stage ('Archive artifacts') {
+          stage ('Archive artifacts') {
             archiveArtifacts "*.deb"
+          }
         }
     } catch (e) {
         currentBuild.result = "FAILED"
