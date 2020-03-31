@@ -28,7 +28,7 @@ node {
                     userRemoteConfigs: [[url: 'git@github.com:Celerway/celerway-jenkins.git']]])
         }
         docker.withRegistry('http://registry:5000') {
-          docker.image('celerway/jenkins-slave:monroe').inside('-u jenkins') {
+          docker.image('registry:5000/jenkins-slave:monroe').inside('-u jenkins') {
             stage ('Build') {
               sh "fakeroot dpkg-deb --build ${jobName} ${jobName}.deb"
               sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
