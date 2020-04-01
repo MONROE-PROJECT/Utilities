@@ -30,6 +30,7 @@ node {
         docker.withRegistry('http://registry:5000') {
           docker.image('registry:5000/jenkins-slave:monroe').inside('-u jenkins') {
             stage ('Build') {
+              sh "chmod -R g-s ${jobName}"
               sh "fakeroot dpkg-deb --build ${jobName} ${jobName}.deb"
               sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
               sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
