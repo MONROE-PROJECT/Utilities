@@ -41,9 +41,9 @@ def usb2op(interface, data=None, reverse=False):
         imei = modem.get('imei')
         mac = modem.get('mac')
         if imei is None and mac is not None:
-		imei = mac
-	else:
-        	continue
+            imei = mac
+        else:
+            continue
         imei = imei.strip()
 
         if reverse:
