@@ -5,7 +5,7 @@ build_dir = "."
 
 @Library('jenkins-shared') _
 
-node ('dockermonroe') {
+node {
     try {
         notifyBuild('STARTED')
         // Be sure that workspace is cleaned
@@ -28,23 +28,27 @@ node ('dockermonroe') {
                     userRemoteConfigs: [[url: 'git@github.com:Celerway/celerway-jenkins.git']]])
         }
 
-        stage ('Install dependencies') {
-            copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
-            sh "sudo dpkg -i libubox_*"
-	    sh "rm libubox_*_amd64.deb"
-        }
-        stage ('Build') {
-            sh "chmod -R g-s ${jobName}"
-            sh "cd ${jobName}; ./make.sh"
-            sh "fakeroot dpkg-deb --build libuci/deb_dist ${jobName}.deb"
-            sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
-            sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
-            sh "rm ${jobName}.deb"
-        }
+        docker.withRegistry('http://registry:5000') {
+          docker.image('registry:5000/jenkins-slave:monroe').inside('-u jenkins') {
+		stage ('Install dependencies') {
+		    copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
+		    sh "sudo dpkg -i libubox_*"
+		    sh "rm libubox_*_amd64.deb"
+		}
 
-        stage ('Archive artifacts') {
-            archiveArtifacts "*.deb"
-        }
+		stage ('Build') {
+		    sh "chmod -R g-s ${jobName}"
+		    sh "cd ${jobName}; ./make.sh"
+		    sh "fakeroot dpkg-deb --build libuci/deb_dist ${jobName}.deb"
+		    sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
+		    sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
+		    sh "rm ${jobName}.deb"
+		}
+
+		stage ('Archive artifacts') {
+		    archiveArtifacts "*.deb"
+		}
+} }
     } catch (e) {
         currentBuild.result = "FAILED"
         throw e
