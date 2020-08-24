@@ -28,13 +28,14 @@ node {
                     userRemoteConfigs: [[url: 'git@github.com:Celerway/celerway-jenkins.git']]])
         }
 
+	stage ('Install dependencies') {
+	    copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
+	    sh "sudo dpkg -i libubox_*"
+	    sh "rm libubox_*_amd64.deb"
+	}
+
         docker.withRegistry('http://registry:5000') {
           docker.image('registry:5000/jenkins-slave:monroe').inside('-u jenkins') {
-		stage ('Install dependencies') {
-		    copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
-		    sh "sudo dpkg -i libubox_*"
-		    sh "rm libubox_*_amd64.deb"
-		}
 
 		stage ('Build') {
 		    sh "chmod -R g-s ${jobName}"
