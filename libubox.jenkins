@@ -29,6 +29,7 @@ node ('dockermonroe') {
         }
 
         stage ('Build') {
+            sh "chmod -R g-s ${jobName}"
             sh "cd ${jobName}; ./make.sh"
             sh "fakeroot dpkg-deb --build libubox/deb_dist ${jobName}.deb"
             sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."

@@ -34,6 +34,7 @@ node ('dockermonroe') {
 	    sh "rm libubox_*_amd64.deb"
         }
         stage ('Build') {
+            sh "chmod -R g-s ${jobName}"
             sh "cd ${jobName}; ./make.sh"
             sh "fakeroot dpkg-deb --build libuci/deb_dist ${jobName}.deb"
             sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
