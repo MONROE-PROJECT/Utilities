@@ -100,10 +100,9 @@ uci_lookup_section_ref(struct uci_section *s)
 		ti = ti->next;
 	}
 	if (!ti) {
-		ti = malloc(sizeof(struct uci_type_list));
+		ti = calloc(1, sizeof(struct uci_type_list));
 		if (!ti)
 			return NULL;
-		memset(ti, 0, sizeof(struct uci_type_list));
 		ti->next = type_list;
 		type_list = ti;
 		ti->name = s->type;
@@ -113,8 +112,16 @@ uci_lookup_section_ref(struct uci_section *s)
 		maxlen = strlen(s->type) + 1 + 2 + 10;
 		if (!typestr) {
 			typestr = malloc(maxlen);
+			if (!typestr)
+				return NULL;
 		} else {
-			typestr = realloc(typestr, maxlen);
+			void *p = realloc(typestr, maxlen);
+			if (!p) {
+				free(typestr);
+				return NULL;
+			}
+
+			typestr = p;
 		}
 
 		if (typestr)
@@ -177,6 +184,7 @@ static void cli_perror(void)
 	uci_perror(ctx, appname);
 }
 
+__attribute__((format(printf, 1, 2)))
 static void cli_error(const char *fmt, ...)
 {
 	va_list ap;
@@ -563,7 +571,7 @@ static int uci_batch_cmd(void)
 			return 1;
 		}
 		argv[i] = NULL;
-		if ((ret = uci_parse_argument(ctx, input, &str, &argv[i])) != UCI_OK) {
+		if (uci_parse_argument(ctx, input, &str, &argv[i]) != UCI_OK) {
 			cli_perror();
 			i = 0;
 			break;

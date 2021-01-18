@@ -41,6 +41,19 @@ struct vlist_node {
 	int version;
 };
 
+#define VLIST_TREE_INIT(_name, _comp, _update, _keep_old, _no_delete)	\
+	{								\
+		.avl = AVL_TREE_INIT(_name.avl, _comp, false, NULL),	\
+		.update = _update,					\
+		.version = 1,						\
+		.keep_old = _keep_old,					\
+		.no_delete = _no_delete,				\
+	}
+
+#define VLIST_TREE(_name, ...)						\
+	struct vlist_tree _name =					\
+		VLIST_TREE_INIT(_name, __VA_ARGS__)
+
 void vlist_init(struct vlist_tree *tree, avl_tree_comp cmp, vlist_update_cb update);
 
 #define vlist_find(tree, name, element, node_member) \
@@ -58,5 +71,20 @@ void vlist_flush_all(struct vlist_tree *tree);
 
 #define vlist_for_each_element(tree, element, node_member) \
 	avl_for_each_element(&(tree)->avl, element, node_member.avl)
+
+#define vlist_for_each_element_reverse(tree, element, node_member) \
+	avl_for_each_element_reverse(&(tree)->avl, element, node_member.avl)
+
+#define vlist_for_first_to_element(tree, last, element, node_member) \
+	avl_for_element_range(avl_first_element(&(tree)->avl, element, node_member.avl), last, element, node_member.avl)
+
+#define vlist_for_first_to_element_reverse(tree, last, element, node_member) \
+	avl_for_element_range_reverse(avl_first_element(&(tree)->avl, element, node_member.avl), last, element, node_member.avl)
+
+#define vlist_for_element_to_last(tree, first, element, node_member) \
+	avl_for_element_range(first, avl_last_element(&(tree)->avl, element, node_member.avl), element, node_member.avl)
+
+#define vlist_for_element_to_last_reverse(tree, first, element, node_member) \
+	avl_for_element_range_reverse(first, avl_last_element(&(tree)->avl, element, node_member.avl), element, node_member.avl)
 
 #endif
