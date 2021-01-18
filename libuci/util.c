@@ -36,10 +36,9 @@ __private void *uci_malloc(struct uci_context *ctx, size_t size)
 {
 	void *ptr;
 
-	ptr = malloc(size);
+	ptr = calloc(1, size);
 	if (!ptr)
 		UCI_THROW(ctx, UCI_ERR_MEM);
-	memset(ptr, 0, size);
 
 	return ptr;
 }
@@ -221,17 +220,21 @@ __private FILE *uci_open_stream(struct uci_context *ctx, const char *filename, c
 
 	ret = flock(fd, (write ? LOCK_EX : LOCK_SH));
 	if ((ret < 0) && (errno != ENOSYS))
-		goto error;
+		goto error_close;
 
 	ret = lseek(fd, 0, pos);
 
 	if (ret < 0)
-		goto error;
+		goto error_unlock;
 
 	file = fdopen(fd, (write ? "w+" : "r"));
 	if (file)
 		goto done;
 
+error_unlock:
+	flock(fd, LOCK_UN);
+error_close:
+	close(fd);
 error:
 	UCI_THROW(ctx, UCI_ERR_IO);
 done:

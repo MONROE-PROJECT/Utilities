@@ -3,7 +3,15 @@ cmake_minimum_required(VERSION 2.6)
 PROJECT(uci C)
 
 SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-ADD_DEFINITIONS(-Os -Wall -Werror --std=gnu99 -g3 -I. -DUCI_PREFIX="${CMAKE_INSTALL_PREFIX}")
+
+ADD_DEFINITIONS(-Wall -Werror)
+IF(CMAKE_C_COMPILER_VERSION VERSION_GREATER 6)
+	ADD_DEFINITIONS(-Wextra -Werror=implicit-function-declaration)
+	ADD_DEFINITIONS(-Wformat -Werror=format-security -Werror=format-nonliteral)
+ENDIF()
+ADD_DEFINITIONS(-Os -std=gnu99 -g3 -Wmissing-declarations -Wno-unused-parameter)
+ADD_DEFINITIONS(-DUCI_PREFIX="${CMAKE_INSTALL_PREFIX}")
+
 
 OPTION(UCI_DEBUG "debugging support" OFF)
 OPTION(UCI_DEBUG_TYPECAST "typecast debugging support" OFF)
@@ -41,7 +49,29 @@ ENDIF(BUILD_STATIC)
 
 ADD_LIBRARY(ucimap STATIC ucimap.c)
 
-ADD_SUBDIRECTORY(lua)
+IF(BUILD_LUA)
+  ADD_SUBDIRECTORY(lua)
+ENDIF()
+
+IF(UNIT_TESTING)
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(tests)
+
+  IF(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    ADD_LIBRARY(uci-san SHARED ${LIB_SOURCES})
+    SET_TARGET_PROPERTIES(uci-san PROPERTIES OUTPUT_NAME uci-san)
+    TARGET_COMPILE_OPTIONS(uci-san PRIVATE -g -fno-omit-frame-pointer -fsanitize=undefined,address,leak -fno-sanitize-recover=all)
+    TARGET_LINK_OPTIONS(uci-san PRIVATE -fsanitize=undefined,address,leak)
+    TARGET_LINK_LIBRARIES(uci-san ${ubox})
+
+    ADD_EXECUTABLE(cli-san cli.c)
+    SET_TARGET_PROPERTIES(cli-san PROPERTIES OUTPUT_NAME uci-san)
+    TARGET_COMPILE_OPTIONS(cli-san PRIVATE -g -fno-omit-frame-pointer -fsanitize=undefined,address,leak -fno-sanitize-recover=all)
+    TARGET_LINK_OPTIONS(cli-san PRIVATE -fsanitize=undefined,address,leak)
+    TARGET_LINK_LIBRARIES(cli-san uci-san ${ubox})
+  ENDIF()
+
+ENDIF()
 
 INSTALL(FILES uci.h uci_config.h uci_blob.h ucimap.h
 	DESTINATION include

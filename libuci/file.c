@@ -28,6 +28,7 @@
 #include <glob.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "uci.h"
 #include "uci_internal.h"
@@ -37,11 +38,11 @@
 /*
  * Fetch a new line from the input stream and resize buffer if necessary
  */
-__private void uci_getln(struct uci_context *ctx, int offset)
+__private void uci_getln(struct uci_context *ctx, size_t offset)
 {
 	struct uci_parse_context *pctx = ctx->pctx;
 	char *p;
-	int ofs;
+	size_t ofs;
 
 	if (pctx->buf == NULL) {
 		pctx->buf = uci_malloc(ctx, LINEBUF);
@@ -63,6 +64,7 @@ __private void uci_getln(struct uci_context *ctx, int offset)
 			return;
 
 		ofs += strlen(p);
+		pctx->buf_filled = ofs;
 		if (pctx->buf[ofs - 1] == '\n') {
 			pctx->line++;
 			return;
@@ -111,7 +113,7 @@ static void skip_whitespace(struct uci_context *ctx)
 		pctx->pos += 1;
 }
 
-static inline void addc(struct uci_context *ctx, int *pos_dest, int *pos_src)
+static inline void addc(struct uci_context *ctx, size_t *pos_dest, size_t *pos_src)
 {
 	struct uci_parse_context *pctx = ctx->pctx;
 
@@ -120,10 +122,19 @@ static inline void addc(struct uci_context *ctx, int *pos_dest, int *pos_src)
 	*pos_src += 1;
 }
 
+static int uci_increase_pos(struct uci_parse_context *pctx, size_t add)
+{
+	if (pctx->pos + add > pctx->buf_filled)
+		return -EINVAL;
+
+	pctx->pos += add;
+	return 0;
+}
+
 /*
  * parse a double quoted string argument from the command line
  */
-static void parse_double_quote(struct uci_context *ctx, int *target)
+static void parse_double_quote(struct uci_context *ctx, size_t *target)
 {
 	struct uci_parse_context *pctx = ctx->pctx;
 	char c;
@@ -158,7 +169,7 @@ static void parse_double_quote(struct uci_context *ctx, int *target)
 /*
  * parse a single quoted string argument from the command line
  */
-static void parse_single_quote(struct uci_context *ctx, int *target)
+static void parse_single_quote(struct uci_context *ctx, size_t *target)
 {
 	struct uci_parse_context *pctx = ctx->pctx;
 	char c;
@@ -187,7 +198,7 @@ static void parse_single_quote(struct uci_context *ctx, int *target)
 /*
  * parse a string from the command line and detect the quoting style
  */
-static void parse_str(struct uci_context *ctx, int *target)
+static void parse_str(struct uci_context *ctx, size_t *target)
 {
 	struct uci_parse_context *pctx = ctx->pctx;
 	bool next = true;
@@ -236,7 +247,7 @@ done:
 static int next_arg(struct uci_context *ctx, bool required, bool name, bool package)
 {
 	struct uci_parse_context *pctx = ctx->pctx;
-	int val, ptr;
+	size_t val, ptr;
 
 	skip_whitespace(ctx);
 	val = ptr = pctx_pos(pctx);
@@ -384,11 +395,12 @@ static void uci_parse_package(struct uci_context *ctx, bool single)
 	char *name;
 
 	/* command string null-terminated by strtok */
-	pctx->pos += strlen(pctx_cur_str(pctx)) + 1;
+	if (uci_increase_pos(pctx, strlen(pctx_cur_str(pctx)) + 1))
+		uci_parse_error(ctx, "package without name");
 
 	ofs_name = next_arg(ctx, true, true, true);
-	name = pctx_str(pctx, ofs_name);
 	assert_eol(ctx);
+	name = pctx_str(pctx, ofs_name);
 	if (single)
 		return;
 
@@ -416,7 +428,8 @@ static void uci_parse_config(struct uci_context *ctx)
 	}
 
 	/* command string null-terminated by strtok */
-	pctx->pos += strlen(pctx_cur_str(pctx)) + 1;
+	if (uci_increase_pos(pctx, strlen(pctx_cur_str(pctx)) + 1))
+		uci_parse_error(ctx, "config without name");
 
 	ofs_type = next_arg(ctx, true, false, false);
 	type = pctx_str(pctx, ofs_type);
@@ -424,9 +437,9 @@ static void uci_parse_config(struct uci_context *ctx)
 		uci_parse_error(ctx, "invalid character in type field");
 
 	ofs_name = next_arg(ctx, false, true, false);
+	assert_eol(ctx);
 	type = pctx_str(pctx, ofs_type);
 	name = pctx_str(pctx, ofs_name);
-	assert_eol(ctx);
 
 	if (!name || !name[0]) {
 		ctx->internal = !pctx->merge;
@@ -466,13 +479,14 @@ static void uci_parse_option(struct uci_context *ctx, bool list)
 		uci_parse_error(ctx, "option/list command found before the first section");
 
 	/* command string null-terminated by strtok */
-	pctx->pos += strlen(pctx_cur_str(pctx)) + 1;
+	if (uci_increase_pos(pctx, strlen(pctx_cur_str(pctx)) + 1))
+		uci_parse_error(ctx, "option without name");
 
 	ofs_name = next_arg(ctx, true, true, false);
 	ofs_value = next_arg(ctx, false, false, false);
+	assert_eol(ctx);
 	name = pctx_str(pctx, ofs_name);
 	value = pctx_str(pctx, ofs_value);
-	assert_eol(ctx);
 
 	uci_fill_ptr(ctx, &ptr, &pctx->section->e);
 	e = uci_lookup_list(&pctx->section->options, name);
@@ -568,7 +582,7 @@ static const char *uci_escape(struct uci_context *ctx, const char *str)
 		len = end - str;
 
 		/* make sure that we have enough room in the buffer */
-		while (ofs + len + sizeof(UCI_QUOTE_ESCAPE) + 1 > ctx->bufsz) {
+		while (ofs + len + (int) sizeof(UCI_QUOTE_ESCAPE) + 1 > ctx->bufsz) {
 			ctx->bufsz *= 2;
 			ctx->buf = uci_realloc(ctx, ctx->buf, ctx->bufsz);
 		}
@@ -720,11 +734,12 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 {
 	struct uci_package *p = *package;
 	FILE *f1, *f2 = NULL;
-	char *name = NULL;
-	char *path = NULL;
+	char *volatile name = NULL;
+	char *volatile path = NULL;
 	char *filename = NULL;
 	struct stat statbuf;
-	bool do_rename = false;
+	volatile bool do_rename = false;
+	int fd, sz;
 
 	if (!p->path) {
 		if (overwrite)
@@ -733,8 +748,9 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			UCI_THROW(ctx, UCI_ERR_INVAL);
 	}
 
-	if ((asprintf(&filename, "%s/.%s.uci-XXXXXX", ctx->confdir, p->e.name) < 0) || !filename)
-		UCI_THROW(ctx, UCI_ERR_MEM);
+	sz = snprintf(NULL, 0, "%s/.%s.uci-XXXXXX", ctx->confdir, p->e.name);
+	filename = alloca(sz + 1);
+	snprintf(filename, sz + 1, "%s/.%s.uci-XXXXXX", ctx->confdir, p->e.name);
 
 	/* open the config file for writing now, so that it is locked */
 	f1 = uci_open_stream(ctx, p->path, NULL, SEEK_SET, true, true);
@@ -770,18 +786,20 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			goto done;
 	}
 
-	if (!mktemp(filename))
-		*filename = 0;
-
-	if (!*filename) {
-		free(filename);
-		UCI_THROW(ctx, UCI_ERR_IO);
-	}
-
-	if ((stat(filename, &statbuf) == 0) && ((statbuf.st_mode & S_IFMT) != S_IFREG))
+	fd = mkstemp(filename);
+	if (fd == -1)
 		UCI_THROW(ctx, UCI_ERR_IO);
 
-	f2 = uci_open_stream(ctx, filename, p->path, SEEK_SET, true, true);
+	if ((flock(fd, LOCK_EX) < 0) && (errno != ENOSYS))
+		UCI_THROW(ctx, UCI_ERR_IO);
+
+	if (lseek(fd, 0, SEEK_SET) < 0)
+		UCI_THROW(ctx, UCI_ERR_IO);
+
+	f2 = fdopen(fd, "w+");
+	if (!f2)
+		UCI_THROW(ctx, UCI_ERR_IO);
+
 	uci_export(ctx, f2, p, false);
 
 	fflush(f2);
@@ -798,13 +816,12 @@ done:
 	uci_close_stream(f1);
 	if (do_rename) {
 		path = realpath(p->path, NULL);
-		if (!path || rename(filename, path)) {
+		if (!path || stat(path, &statbuf) || chmod(filename, statbuf.st_mode) || rename(filename, path)) {
 			unlink(filename);
 			UCI_THROW(ctx, UCI_ERR_IO);
 		}
 		free(path);
 	}
-	free(filename);
 	if (ctx->err)
 		UCI_THROW(ctx, ctx->err);
 }
@@ -831,7 +848,8 @@ static char **uci_list_config_files(struct uci_context *ctx)
 {
 	char **configs;
 	glob_t globbuf;
-	int size, i, j, skipped;
+	int size, j, skipped;
+	size_t i;
 	char *buf;
 	char *dir;
 
@@ -878,12 +896,13 @@ static char **uci_list_config_files(struct uci_context *ctx)
 	return configs;
 }
 
-static struct uci_package *uci_file_load(struct uci_context *ctx, const char *name)
+static struct uci_package *uci_file_load(struct uci_context *ctx,
+					 const char *volatile name)
 {
 	struct uci_package *package = NULL;
 	char *filename;
 	bool confdir;
-	FILE *file = NULL;
+	FILE *volatile file = NULL;
 
 	switch (name[0]) {
 	case '.':

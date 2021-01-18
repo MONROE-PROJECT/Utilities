@@ -137,7 +137,7 @@ static unsigned int djbhash(unsigned int hash, char *str)
 	int i;
 
 	/* initial value */
-	if (hash == ~0)
+	if (hash == ~0U)
 		hash = 5381;
 
 	for(i = 0; i < len; i++) {
@@ -149,7 +149,7 @@ static unsigned int djbhash(unsigned int hash, char *str)
 /* fix up an unnamed section, e.g. after adding options to it */
 static void uci_fixup_section(struct uci_context *ctx, struct uci_section *s)
 {
-	unsigned int hash = ~0;
+	unsigned int hash = ~0U;
 	struct uci_element *e;
 	char buf[16];
 
@@ -623,8 +623,8 @@ int uci_add_list(struct uci_context *ctx, struct uci_ptr *ptr)
 {
 	/* NB: UCI_INTERNAL use means without delta tracking */
 	bool internal = ctx && ctx->internal;
-	struct uci_option *prev = NULL;
-	const char *value2 = NULL;
+	struct uci_option *volatile prev = NULL;
+	const char *volatile value2 = NULL;
 
 	UCI_HANDLE_ERR(ctx);
 

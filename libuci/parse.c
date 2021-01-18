@@ -78,10 +78,12 @@ static uint32_t hash_murmur2(uint32_t h, const void * key, int len)
 	switch(len)
 	{
 	case 3: h ^= data[2] << 16;
+		/* fall through */
 	case 2: h ^= data[1] << 8;
+		/* fall through */
 	case 1: h ^= data[0];
 	        h *= m;
-	};
+	}
 
 	h ^= h >> 13;
 	h *= m;

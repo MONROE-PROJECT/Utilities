@@ -56,14 +56,14 @@ struct runqueue_task_type {
 	 * called to request cancelling a task
 	 *
 	 * int type is used as an optional hint for the method to be used when
-	 * cancelling the task, e.g. a signal number for processes. Calls
-	 * runqueue_task_complete when done.
+	 * cancelling the task, e.g. a signal number for processes. The cancel
+	 * callback should call runqueue_task_complete when done.
 	 */
 	void (*cancel)(struct runqueue *q, struct runqueue_task *t, int type);
 
 	/*
 	 * called to kill a task. must not make any calls to runqueue_task_complete,
-	 * it has already been removed from the list.
+	 * which will be called after this returns.
 	 */
 	void (*kill)(struct runqueue *q, struct runqueue_task *t);
 };
@@ -89,6 +89,15 @@ struct runqueue_process {
 	struct runqueue_task task;
 	struct uloop_process proc;
 };
+
+#define RUNQUEUE_INIT(_name, _max_running) { \
+		.tasks_active = SAFE_LIST_INIT(_name.tasks_active), \
+		.tasks_inactive = SAFE_LIST_INIT(_name.tasks_inactive), \
+		.max_running_tasks = _max_running \
+	}
+
+#define RUNQUEUE(_name, _max_running) \
+	struct runqueue _name = RUNQUEUE_INIT(_name, _max_running)
 
 void runqueue_init(struct runqueue *q);
 void runqueue_cancel(struct runqueue *q);

@@ -100,7 +100,7 @@ int uci_set_savedir(struct uci_context *ctx, const char *dir)
 {
 	char *sdir;
 	struct uci_element *e, *tmp;
-	bool exists = false;
+	volatile bool exists = false;
 
 	UCI_HANDLE_ERR(ctx);
 	UCI_ASSERT(ctx, dir != NULL);
@@ -198,6 +198,7 @@ static inline int uci_parse_delta_tuple(struct uci_context *ctx, struct uci_ptr 
 	case UCI_CMD_LIST_ADD:
 		if (!ptr->option)
 			goto error;
+		/* fall through */
 	case UCI_CMD_LIST_DEL:
 		if (!ptr->option)
 			goto error;
@@ -259,7 +260,7 @@ error:
 static int uci_parse_delta(struct uci_context *ctx, FILE *stream, struct uci_package *p)
 {
 	struct uci_parse_context *pctx;
-	int changes = 0;
+	volatile int changes = 0;
 
 	/* make sure no memory from previous parse attempts is leaked */
 	uci_cleanup(ctx);
@@ -294,8 +295,8 @@ error:
 /* returns the number of changes that were successfully parsed */
 static int uci_load_delta_file(struct uci_context *ctx, struct uci_package *p, char *filename, FILE **f, bool flush)
 {
-	FILE *stream = NULL;
-	int changes = 0;
+	FILE *volatile stream = NULL;
+	volatile int changes = 0;
 
 	UCI_TRAP_SAVE(ctx, done);
 	stream = uci_open_stream(ctx, filename, NULL, SEEK_SET, flush, false);
@@ -317,8 +318,8 @@ __private int uci_load_delta(struct uci_context *ctx, struct uci_package *p, boo
 {
 	struct uci_element *e;
 	char *filename = NULL;
-	FILE *f = NULL;
-	int changes = 0;
+	FILE *volatile f = NULL;
+	volatile int changes = 0;
 
 	if (!p->has_delta)
 		return 0;
@@ -391,7 +392,7 @@ static void uci_filter_delta(struct uci_context *ctx, const char *name, const ch
 				match = false;
 		}
 
-		if (!match) {
+		if (!match && ptr.section) {
 			uci_add_delta(ctx, &list, c,
 				ptr.section, ptr.option, ptr.value);
 		}
@@ -419,9 +420,9 @@ done:
 
 int uci_revert(struct uci_context *ctx, struct uci_ptr *ptr)
 {
-	char *package = NULL;
-	char *section = NULL;
-	char *option = NULL;
+	char *volatile package = NULL;
+	char *volatile section = NULL;
+	char *volatile option = NULL;
 
 	UCI_HANDLE_ERR(ctx);
 	uci_expand_ptr(ctx, ptr, false);
@@ -463,7 +464,7 @@ error:
 
 int uci_save(struct uci_context *ctx, struct uci_package *p)
 {
-	FILE *f = NULL;
+	FILE *volatile f = NULL;
 	char *filename = NULL;
 	struct uci_element *e, *tmp;
 	struct stat statbuf;

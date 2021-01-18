@@ -25,14 +25,29 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <getopt.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <inttypes.h>
 #include "list.h"
 
+#include "avl.h"
+#include "blob.h"
+#include "blobmsg_json.h"
+
 #define MAX_VARLEN	256
+
+static struct avl_tree env_vars;
+static struct blob_buf b = { 0 };
 
 static const char *var_prefix = "";
 static int var_prefix_len = 0;
 
 static int add_json_element(const char *key, json_object *obj);
+
+struct env_var {
+	struct avl_node avl;
+	char *val;
+};
 
 static int add_json_object(json_object *obj)
 {
@@ -53,7 +68,7 @@ static int add_json_array(struct array_list *a)
 	int ret;
 
 	for (i = 0, len = array_list_length(a); i < len; i++) {
-		sprintf(seq, "%d", i);
+		snprintf(seq, sizeof(seq), "%d", i);
 		ret = add_json_element(seq, array_list_get_idx(a, i));
 		if (ret)
 			return ret;
@@ -93,9 +108,6 @@ static int add_json_element(const char *key, json_object *obj)
 {
 	char *type;
 
-	if (!obj)
-		return -1;
-
 	switch (json_object_get_type(obj)) {
 	case json_type_object:
 		type = "object";
@@ -114,6 +126,9 @@ static int add_json_element(const char *key, json_object *obj)
 		break;
 	case json_type_double:
 		type = "double";
+		break;
+	case json_type_null:
+		type = "null";
 		break;
 	default:
 		return -1;
@@ -142,10 +157,13 @@ static int add_json_element(const char *key, json_object *obj)
 		fprintf(stdout, "' %d;\n", json_object_get_boolean(obj));
 		break;
 	case json_type_int:
-		fprintf(stdout, "' %d;\n", json_object_get_int(obj));
+		fprintf(stdout, "' %"PRId64";\n", json_object_get_int64(obj));
 		break;
 	case json_type_double:
 		fprintf(stdout, "' %lf;\n", json_object_get_double(obj));
+		break;
+	case json_type_null:
+		fprintf(stdout, "';\n");
 		break;
 	default:
 		return -1;
@@ -159,40 +177,51 @@ static int jshn_parse(const char *str)
 	json_object *obj;
 
 	obj = json_tokener_parse(str);
-	if (is_error(obj) || json_object_get_type(obj) != json_type_object) {
+	if (!obj || json_object_get_type(obj) != json_type_object) {
+		if (obj)
+			json_object_put(obj);
 		fprintf(stderr, "Failed to parse message data\n");
 		return 1;
 	}
 	fprintf(stdout, "json_init;\n");
 	add_json_object(obj);
 	fflush(stdout);
+	json_object_put(obj);
 
 	return 0;
+}
+
+static char *getenv_avl(const char *key)
+{
+	struct env_var *var = avl_find_element(&env_vars, key, var, avl);
+	return var ? var->val : NULL;
 }
 
 static char *get_keys(const char *prefix)
 {
 	char *keys;
+	size_t len = var_prefix_len + strlen(prefix) + sizeof("K_") + 1;
 
-	keys = alloca(var_prefix_len + strlen(prefix) + sizeof("KEYS_") + 1);
-	sprintf(keys, "%sKEYS_%s", var_prefix, prefix);
-	return getenv(keys);
+	keys = alloca(len);
+	snprintf(keys, len, "%sK_%s", var_prefix, prefix);
+	return getenv_avl(keys);
 }
 
 static void get_var(const char *prefix, const char **name, char **var, char **type)
 {
 	char *tmpname, *varname;
+	size_t len = var_prefix_len + strlen(prefix) + 1 + strlen(*name) + 1 + sizeof("T_");
 
-	tmpname = alloca(var_prefix_len + strlen(prefix) + 1 + strlen(*name) + 1 + sizeof("TYPE_"));
+	tmpname = alloca(len);
 
-	sprintf(tmpname, "%s%s_%s", var_prefix, prefix, *name);
-	*var = getenv(tmpname);
+	snprintf(tmpname, len, "%s%s_%s", var_prefix, prefix, *name);
+	*var = getenv_avl(tmpname);
 
-	sprintf(tmpname, "%sTYPE_%s_%s", var_prefix, prefix, *name);
-	*type = getenv(tmpname);
+	snprintf(tmpname, len, "%sT_%s_%s", var_prefix, prefix, *name);
+	*type = getenv_avl(tmpname);
 
-	sprintf(tmpname, "%sNAME_%s_%s", var_prefix, prefix, *name);
-	varname = getenv(tmpname);
+	snprintf(tmpname, len, "%sN_%s_%s", var_prefix, prefix, *name);
+	varname = getenv_avl(tmpname);
 	if (varname)
 		*name = varname;
 }
@@ -217,11 +246,13 @@ static void jshn_add_object_var(json_object *obj, bool array, const char *prefix
 	} else if (!strcmp(type, "string")) {
 		new = json_object_new_string(var);
 	} else if (!strcmp(type, "int")) {
-		new = json_object_new_int(atoi(var));
+		new = json_object_new_int64(atoll(var));
 	} else if (!strcmp(type, "double")) {
 		new = json_object_new_double(strtod(var, NULL));
 	} else if (!strcmp(type, "boolean")) {
 		new = json_object_new_boolean(!!atoi(var));
+	} else if (!strcmp(type, "null")) {
+		new = NULL;
 	} else {
 		return;
 	}
@@ -249,45 +280,183 @@ out:
 	return obj;
 }
 
-static int jshn_format(bool no_newline)
+static int jshn_format(bool no_newline, bool indent, FILE *stream)
 {
 	json_object *obj;
+	const char *output;
+	char *blobmsg_output = NULL;
+	int ret = -1;
 
-	obj = json_object_new_object();
-	jshn_add_objects(obj, "JSON_VAR", false);
-	fprintf(stdout, "%s%s", json_object_to_json_string(obj),
-		no_newline ? "" : "\n");
+	if (!(obj = json_object_new_object()))
+		return -1;
+
+	jshn_add_objects(obj, "J_V", false);
+	if (!(output = json_object_to_json_string(obj)))
+		goto out;
+
+	if (indent) {
+		blob_buf_init(&b, 0);
+		if (!blobmsg_add_json_from_string(&b, output))
+			goto out;
+		if (!(blobmsg_output = blobmsg_format_json_indent(b.head, 1, 0)))
+			goto out;
+		output = blobmsg_output;
+	}
+	fprintf(stream, "%s%s", output, no_newline ? "" : "\n");
+	free(blobmsg_output);
+	ret = 0;
+
+out:
 	json_object_put(obj);
-	return 0;
+	return ret;
 }
 
 static int usage(const char *progname)
 {
-	fprintf(stderr, "Usage: %s [-n] -r <message>|-w\n", progname);
+	fprintf(stderr, "Usage: %s [-n] [-i] -r <message>|-R <file>|-o <file>|-p <prefix>|-w\n", progname);
 	return 2;
+}
+
+static int avl_strcmp_var(const void *k1, const void *k2, void *ptr)
+{
+	const char *s1 = k1;
+	const char *s2 = k2;
+	char c1, c2;
+
+	while (*s1 && *s1 == *s2) {
+		s1++;
+		s2++;
+	}
+
+	c1 = *s1;
+	c2 = *s2;
+	if (c1 == '=')
+		c1 = 0;
+	if (c2 == '=')
+		c2 = 0;
+
+	return c1 - c2;
+}
+
+static int jshn_parse_file(const char *path)
+{
+	struct stat sb;
+	int ret = 0;
+	char *fbuf;
+	int fd;
+
+	if ((fd = open(path, O_RDONLY)) == -1) {
+		fprintf(stderr, "Error opening %s\n", path);
+		return 3;
+	}
+
+	if (fstat(fd, &sb) == -1) {
+		fprintf(stderr, "Error getting size of %s\n", path);
+		close(fd);
+		return 3;
+	}
+
+	if (!(fbuf = calloc(1, sb.st_size+1))) {
+		fprintf(stderr, "Error allocating memory for %s\n", path);
+		close(fd);
+		return 3;
+	}
+
+	if (read(fd, fbuf, sb.st_size) != sb.st_size) {
+		fprintf(stderr, "Error reading %s\n", path);
+		free(fbuf);
+		close(fd);
+		return 3;
+	}
+
+	ret = jshn_parse(fbuf);
+	free(fbuf);
+	close(fd);
+
+	return ret;
+}
+
+static int jshn_format_file(const char *path, bool no_newline, bool indent)
+{
+	FILE *fp = NULL;
+	int ret = 0;
+
+	fp = fopen(path, "w");
+	if (!fp) {
+		fprintf(stderr, "Error opening %s\n", path);
+		return 3;
+	}
+
+	ret = jshn_format(no_newline, indent, fp);
+	fclose(fp);
+
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
+	extern char **environ;
 	bool no_newline = false;
+	bool indent = false;
+	struct env_var *vars;
+	int i;
+	int ret = 0;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "p:nr:w")) != -1) {
+	avl_init(&env_vars, avl_strcmp_var, false, NULL);
+	for (i = 0; environ[i]; i++);
+
+	vars = calloc(i, sizeof(*vars));
+	if (!vars) {
+		fprintf(stderr, "%m\n");
+		return -1;
+	}
+	for (i = 0; environ[i]; i++) {
+		char *c;
+
+		vars[i].avl.key = environ[i];
+		c = strchr(environ[i], '=');
+		if (!c)
+			continue;
+
+		vars[i].val = c + 1;
+		avl_insert(&env_vars, &vars[i].avl);
+	}
+
+	while ((ch = getopt(argc, argv, "p:nir:R:o:w")) != -1) {
 		switch(ch) {
 		case 'p':
 			var_prefix = optarg;
 			var_prefix_len = strlen(var_prefix);
 			break;
 		case 'r':
-			return jshn_parse(optarg);
+			ret = jshn_parse(optarg);
+			goto exit;
+		case 'R':
+			ret = jshn_parse_file(optarg);
+			goto exit;
 		case 'w':
-			return jshn_format(no_newline);
+			ret = jshn_format(no_newline, indent, stdout);
+			goto exit;
+		case 'o':
+			ret = jshn_format_file(optarg, no_newline, indent);
+			goto exit;
 		case 'n':
 			no_newline = true;
 			break;
+		case 'i':
+			indent = true;
+			break;
 		default:
+			free(vars);
 			return usage(argv[0]);
 		}
 	}
+
+	free(vars);
 	return usage(argv[0]);
+
+exit:
+	free(vars);
+	return ret;
 }

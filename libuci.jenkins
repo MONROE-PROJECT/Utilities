@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 jobName = "libuci"
-version = "0.1.0"
+version = "0.1.1"
 build_dir = "."
 
 @Library('jenkins-shared') _
