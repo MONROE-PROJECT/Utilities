@@ -197,18 +197,6 @@ for IF in $INTERFACES_IFB; do
 done
 
 for IF in $INTERFACES_BR; do
-
-  # Drop host traffic on iot interfaces
-  # TBD also check DEV_KIND if that becomes relevant
-  DEV_SUB_MODE=$(/usr/bin/modems|jq '.[]|select(.ifname=="'${IF}'").device_sub_mode')
-  TARGET="/etc/circle.d/20-$IF-iotdrop.rules"
-  if [ "$DEV_SUB_MODE" = "15" ] || [ "$DEV_SUB_MODE" = "16" ]; then
-      echo "\${ipt4} -I OUTPUT 1 -o ${IF} -j DROP" > $TARGET
-      circle start
-  else
-      rm $TARGET 2>/dev/null || true
-  fi
-
   OP=$(usb2op $IF) || continue
   if [ -z "$(ip link|grep ${IF}:)" ]; then
     $MNS ip link del $OP 2>/dev/null || true;
