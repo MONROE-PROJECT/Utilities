@@ -1,0 +1,4 @@
+#!/bin/sh
+
+systemctl enable ubusd || true
+systemctl start  ubusd || true
