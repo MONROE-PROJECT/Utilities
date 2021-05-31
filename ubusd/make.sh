@@ -25,9 +25,9 @@ cp *.h deb_dist/usr/local/include/libubus/
 cp build/libubus.so deb_dist/usr/local/lib/
 
 mkdir -p deb_dist/bin/
-cp build/ubus build/ubusd deb_dist/bin/ubus
+cp build/ubus deb_dist/bin/
 mkdir -p deb_dist/sbin/
-cp build/ubus ubusd deb_dist/bin/ubusd
+cp build/ubusd deb_dist/sbin/
 
 rm -r build
 
