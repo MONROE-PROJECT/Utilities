@@ -1,0 +1,9 @@
+Package: ubusd
+Version: 0.1.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: support@celerway.com
+Vcs-Browser: https://github.com/MONROE-PROJECT/Utilities/tree/master/ubusd
+Vcs-Git: https://github.com/MONROE-PROJECT/Utilities.git
+Description: ubusd/libubus from the OpenWRT project, used for communication between components
