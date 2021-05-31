@@ -4,7 +4,7 @@ PROJECT(uci C)
 
 SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 
-ADD_DEFINITIONS(-Wall -Werror)
+ADD_DEFINITIONS(-Wall -Werror -Wno-clobbered)
 IF(CMAKE_C_COMPILER_VERSION VERSION_GREATER 6)
 	ADD_DEFINITIONS(-Wextra -Werror=implicit-function-declaration)
 	ADD_DEFINITIONS(-Wformat -Werror=format-security -Werror=format-nonliteral)
