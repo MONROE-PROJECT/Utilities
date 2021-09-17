@@ -21,7 +21,7 @@ chmod +x ubus ubusd
 cd ..
 mkdir -p deb_dist/usr/local/include/libubus
 mkdir -p deb_dist/usr/local/lib
-cp *.h deb_dist/usr/local/include/libubus/
+cp *.h deb_dist/usr/include/
 cp build/libubus.so deb_dist/usr/local/lib/
 
 mkdir -p deb_dist/bin/
