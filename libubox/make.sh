@@ -6,7 +6,7 @@ set -x
 mkdir build
 cd build
 cmake ..
-make ubox
+make
 
 cd ..
 mkdir -p deb_dist/usr/local/include
