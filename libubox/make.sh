@@ -9,10 +9,12 @@ cmake ..
 make ubox
 
 cd ..
-mkdir -p deb_dist/usr/local/include/libubox
+mkdir -p deb_dist/usr/local/include
 mkdir -p deb_dist/usr/local/lib
-cp *.h deb_dist/usr/local/include/libubox/
+cp *.h deb_dist/usr/local/include/
 cp build/libubox.so deb_dist/usr/local/lib/
+cp build/libblobmsg_json.so deb_dist/usr/local/lib/
+cp build/libjson_script.so deb_dist/usr/local/lib/
 
 rm -r build
 
