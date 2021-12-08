@@ -282,7 +282,7 @@ if [[ $PING_NNE -eq 1 ]]; then
     while read -r MCONFIG CONTAINER; do
       if [ "$CONTAINER" == "null" ]; then continue; fi
       if [ -z "$(docker ps --no-trunc|grep $MCONFIG)" ]; then
-        docker run -d --name=$MCONFIG --net=container:$CID -v $BASEDIR/nne:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/$MCONFIG:/monroe/config:ro $CONTAINER || true;
+        docker run -d --name=$MCONFIG --net=host -v $BASEDIR/nne:/monroe/results -v /etc/nodeid:/nodeid:ro -v $BASEDIR/$MCONFIG:/monroe/config:ro $CONTAINER || true;
         logger -t monroe-experiments "started NNE container ($MCONFIG).";
       fi
     done < $BASEDIR/node$NODEID.conf
