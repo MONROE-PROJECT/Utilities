@@ -252,7 +252,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		snprintf(buf, sizeof(buf), "null");
 		break;
 	case BLOBMSG_TYPE_BOOL:
-		snprintf(buf, sizeof(buf), "%" PRId16, (int16_t) be16_to_cpu(*(uint8_t *)data));
+		snprintf(buf, sizeof(buf), "%" PRId16, ((int16_t) be16_to_cpu(*(uint8_t *)data) / 256)); // >>8
 		//snprintf(buf, sizeof(buf), "%s", *(uint8_t *)data ? "true" : "false");
 		break;
 	case BLOBMSG_TYPE_INT16:
