@@ -446,7 +446,7 @@ ubus_cli_get_monitor_data(struct blob_attr *data)
 			blobmsg_add_string(&b, n, blob_data(v));
 			break;
 		case BLOB_ATTR_INT8:
-			blobmsg_add_u8(&b, n, !!blob_get_int8(v));
+			blobmsg_add_u32(&b, n, blob_get_int8(v));
 			break;
 		case BLOB_ATTR_NESTED:
 			blobmsg_add_field(&b, BLOBMSG_TYPE_TABLE, n, blobmsg_data(v), blobmsg_data_len(v));
