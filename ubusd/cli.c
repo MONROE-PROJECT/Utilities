@@ -40,7 +40,7 @@ static const char * const monitor_types[] = {
 static const char *format_type(void *priv, struct blob_attr *attr)
 {
 	static const char * const attr_types[] = {
-		[BLOBMSG_TYPE_INT8] = "\"Boolean\"",
+		[BLOBMSG_TYPE_INT8] = "\"Integer\"",
 		[BLOBMSG_TYPE_INT32] = "\"Integer\"",
 		[BLOBMSG_TYPE_STRING] = "\"String\"",
 		[BLOBMSG_TYPE_ARRAY] = "\"Array\"",
