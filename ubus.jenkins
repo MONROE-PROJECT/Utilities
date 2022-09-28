@@ -28,28 +28,28 @@ node {
                     userRemoteConfigs: [[url: 'git@github.com:Celerway/celerway-jenkins.git']]])
         }
 
-        docker.withRegistry('http://registry:5000') {
-          docker.image('registry:5000/jenkins-slave:monroe').inside('-u jenkins') {
+        withDockerRegistry(credentialsId: 'gcr:nimbus-tools-gcr', url: 'http://eu.gcr.io/nimbus-tools') {
+            docker.image('eu.gcr.io/nimbus-tools/monroe-builder:22.04').inside('-u jenkins') {
 
-    stage ('Install dependencies') {
-        copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
-        sh "sudo dpkg -i libubox_*"
-        sh "rm libubox_*_amd64.deb"
-    }
+                stage ('Install dependencies') {
+                    copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
+                    sh "sudo dpkg -i libubox_*"
+                    sh "rm libubox_*_amd64.deb"
+                }
 
-		stage ('Build') {
-		    sh "chmod -R g-s ${jobName}"
-		    sh "cd ${jobName}; ./make.sh"
-		    sh "fakeroot dpkg-deb --build ${jobName}/deb_dist ${jobName}.deb"
-		    sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
-		    sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
-		    sh "rm ${jobName}.deb"
-		}
+                stage ('Build') {
+                    sh "chmod -R g-s ${jobName}"
+                    sh "cd ${jobName}; ./make.sh"
+                    sh "fakeroot dpkg-deb --build ${jobName}/deb_dist ${jobName}.deb"
+                    sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
+                    sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
+                    sh "rm ${jobName}.deb"
+                }
 
-		stage ('Archive artifacts') {
-		    archiveArtifacts "*.deb"
-}
-}
+                stage ('Archive artifacts') {
+                    archiveArtifacts "*.deb"
+                }
+            }
         }
     } catch (e) {
         currentBuild.result = "FAILED"

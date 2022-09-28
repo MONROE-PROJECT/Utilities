@@ -30,26 +30,25 @@ node {
 
         withDockerRegistry(credentialsId: 'gcr:nimbus-tools-gcr', url: 'http://eu.gcr.io/nimbus-tools') {
             docker.image('eu.gcr.io/nimbus-tools/monroe-builder:22.04').inside('-u jenkins') {
+                stage ('Build') {
+                    sh "chmod -R g-s ${jobName}"
+                    sh "cd ${jobName}; ./make.sh"
+                    sh "fakeroot dpkg-deb --build libubox/deb_dist ${jobName}.deb"
+                    sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
+                    sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
+                    sh "rm ${jobName}.deb"
+                }
 
-		stage ('Build') {
-		    sh "chmod -R g-s ${jobName}"
-		    sh "cd ${jobName}; ./make.sh"
-		    sh "fakeroot dpkg-deb --build libubox/deb_dist ${jobName}.deb"
-		    sh "chmod +x versionize/versionize.sh; cp versionize/versionize.sh ."
-		    sh "./versionize.sh ${jobName}.deb ${jobName} ${version} ${shortCommit}"
-		    sh "rm ${jobName}.deb"
-		}
-
-		stage ('Archive artifacts') {
-		    archiveArtifacts "*.deb"
-}
-}
+                stage ('Archive artifacts') {
+                    archiveArtifacts "*.deb"
+                }
+            }
         }
     } catch (e) {
         currentBuild.result = "FAILED"
         throw e
     } finally {
         // Success or failure, always send notifications
-		notifyBuild(currentBuild.result)
+        notifyBuild(currentBuild.result)
     } // end of try catch finally block
 }
