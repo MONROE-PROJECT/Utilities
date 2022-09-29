@@ -29,7 +29,7 @@ node {
         }
 
         withDockerRegistry(credentialsId: 'gcr:nimbus-tools-gcr', url: 'http://eu.gcr.io/nimbus-tools') {
-            docker.image('eu.gcr.io/nimbus-tools/monroe-builder:22.04').inside('-u jenkins') {
+            docker.image('eu.gcr.io/nimbus-tools/monroe-builder:stretch').inside('-u jenkins') {
 
                 stage ('Install dependencies') {
                     copyArtifacts filter: 'libubox_*_amd64.deb', fingerprintArtifacts: true, projectName: 'monroe/libubox', selector: lastSuccessful()
